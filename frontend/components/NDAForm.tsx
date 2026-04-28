@@ -145,34 +145,34 @@ export function NDAForm({ data, onChange }: NDAFormProps) {
             type="text"
             value={data.party1Name}
             onChange={(e) => handleInputChange("party1Name", e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
             placeholder="Name"
           />
           <input
             type="text"
             value={data.party1Title}
             onChange={(e) => handleInputChange("party1Title", e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
             placeholder="Title"
           />
           <input
             type="text"
             value={data.party1Company}
             onChange={(e) => handleInputChange("party1Company", e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
             placeholder="Company"
           />
           <input
             type="email"
             value={data.party1Email}
             onChange={(e) => handleInputChange("party1Email", e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
             placeholder="Email"
           />
           <textarea
             value={data.party1Address}
             onChange={(e) => handleInputChange("party1Address", e.target.value)}
-            className="col-span-2 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            className="col-span-2 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-gray-900 placeholder-gray-500"
             rows={2}
             placeholder="Notice Address"
           />
@@ -180,7 +180,7 @@ export function NDAForm({ data, onChange }: NDAFormProps) {
             type="date"
             value={data.party1Date}
             onChange={(e) => handleInputChange("party1Date", e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
             placeholder="Date"
           />
         </div>
@@ -194,34 +194,34 @@ export function NDAForm({ data, onChange }: NDAFormProps) {
             type="text"
             value={data.party2Name}
             onChange={(e) => handleInputChange("party2Name", e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
             placeholder="Name"
           />
           <input
             type="text"
             value={data.party2Title}
             onChange={(e) => handleInputChange("party2Title", e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
             placeholder="Title"
           />
           <input
             type="text"
             value={data.party2Company}
             onChange={(e) => handleInputChange("party2Company", e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
             placeholder="Company"
           />
           <input
             type="email"
             value={data.party2Email}
             onChange={(e) => handleInputChange("party2Email", e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
             placeholder="Email"
           />
           <textarea
             value={data.party2Address}
             onChange={(e) => handleInputChange("party2Address", e.target.value)}
-            className="col-span-2 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            className="col-span-2 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-gray-900 placeholder-gray-500"
             rows={2}
             placeholder="Notice Address"
           />
@@ -229,7 +229,7 @@ export function NDAForm({ data, onChange }: NDAFormProps) {
             type="date"
             value={data.party2Date}
             onChange={(e) => handleInputChange("party2Date", e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
             placeholder="Date"
           />
         </div>
