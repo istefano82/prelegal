@@ -1,0 +1,96 @@
+{
+  "version": "1.0",
+  "description": "Catalog of legal document templates from Common Paper, available under CC BY 4.0 license",
+  "source": "https://github.com/CommonPaper",
+  "templates": [
+    {
+      "id": "mutual-nda",
+      "name": "Mutual Non-Disclosure Agreement",
+      "description": "A mutual NDA created by a committee of over 40 attorneys representing technology vendors, procurement teams, boutique firms, and Big Law. This agreement is used to protect confidential information when evaluating potential business relationships. Version 1.0 of this agreement remains unchanged and hosted forever.",
+      "filename": "Mutual-NDA.md",
+      "coverpage_filename": "Mutual-NDA-coverpage.md",
+      "type": "NDA",
+      "repository": "https://github.com/CommonPaper/Mutual-NDA"
+    },
+    {
+      "id": "csa",
+      "name": "Cloud Service Agreement",
+      "description": "An easy agreement for selling and buying cloud software and SaaS products. Created by a committee of over 40 attorneys, this CSA provides balanced terms for both vendors and customers.",
+      "filename": "CSA.md",
+      "type": "Service Agreement",
+      "repository": "https://github.com/CommonPaper/CSA"
+    },
+    {
+      "id": "dpa",
+      "name": "Data Processing Agreement",
+      "description": "A data protection agreement covering how personal data is processed. Compliant with GDPR and other data protection regulations. Defines roles and responsibilities between data controllers and processors.",
+      "filename": "DPA.md",
+      "type": "Data Protection",
+      "repository": "https://github.com/CommonPaper/DPA"
+    },
+    {
+      "id": "sla",
+      "name": "Service Level Agreement",
+      "description": "Defines service level expectations and remedies. Designed to be used with the Common Paper Cloud Service Agreement (CSA) for cloud software and SaaS products.",
+      "filename": "sla.md",
+      "type": "Service Agreement",
+      "repository": "https://github.com/CommonPaper/SLA"
+    },
+    {
+      "id": "design-partner-agreement",
+      "name": "Design Partner Agreement",
+      "description": "Allows a prospective customer to be one of the first users of a product and provide feedback. Perfect for early-stage vendors seeking to incorporate customer feedback into product development.",
+      "filename": "design-partner-agreement.md",
+      "type": "Partnership",
+      "repository": "https://github.com/CommonPaper/Design-Partner-Agreement"
+    },
+    {
+      "id": "psa",
+      "name": "Professional Services Agreement",
+      "description": "Standard agreement for providing professional services and delivering deliverables. Includes provisions for payment, intellectual property assignment, and service delivery terms.",
+      "filename": "psa.md",
+      "type": "Service Agreement",
+      "repository": "https://github.com/CommonPaper/PSA"
+    },
+    {
+      "id": "software-license-agreement",
+      "name": "Software License Agreement",
+      "description": "Comprehensive agreement for licensing software. Covers license grants, restrictions, payment, and support terms. Suitable for both cloud and on-premise software solutions.",
+      "filename": "Software-License-Agreement.md",
+      "type": "License Agreement",
+      "repository": "https://github.com/CommonPaper/Software-License-Agreement"
+    },
+    {
+      "id": "partnership-agreement",
+      "name": "Partnership Agreement",
+      "description": "Governs partnership relationships between companies including obligations, payment terms, trademark licenses, and dispute resolution. Flexible for various partnership models.",
+      "filename": "Partnership-Agreement.md",
+      "type": "Partnership",
+      "repository": "https://github.com/CommonPaper/Partnership-Agreement"
+    },
+    {
+      "id": "pilot-agreement",
+      "name": "Pilot Agreement",
+      "description": "Short-term trial agreement allowing customers to evaluate products before committing to longer-term deals. Often leads to full commercial agreements like CSA or Software License Agreement.",
+      "filename": "Pilot-Agreement.md",
+      "type": "Evaluation Agreement",
+      "repository": "https://github.com/CommonPaper/Pilot-Agreement"
+    },
+    {
+      "id": "baa",
+      "name": "Business Associate Agreement",
+      "description": "HIPAA-compliant agreement for relationships handling protected health information (PHI). Includes data protection, breach notification, and compliance obligations.",
+      "filename": "BAA.md",
+      "type": "Compliance Agreement",
+      "repository": "https://github.com/CommonPaper/BAA"
+    },
+    {
+      "id": "ai-addendum",
+      "name": "AI Addendum",
+      "description": "Addendum addressing artificial intelligence and machine learning usage in technology agreements. Covers AI services, training data, output ownership, and related intellectual property provisions.",
+      "filename": "AI-Addendum.md",
+      "type": "Addendum",
+      "repository": "https://github.com/CommonPaper/AI-Addendum"
+    }
+  ]
+}

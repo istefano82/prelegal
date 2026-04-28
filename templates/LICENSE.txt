@@ -1,0 +1,20 @@
+# License for Legal Document Templates
+
+All legal document templates in this directory are licensed under the Creative Commons Attribution 4.0 International (CC BY 4.0) license.
+
+Source: Common Paper (https://commonpaper.com)
+
+You are free to:
+- Share - copy and redistribute the material in any medium or format
+- Adapt - remix, transform, and build upon the material for any purpose, even commercially
+
+Under the following terms:
+- Attribution - You must give appropriate credit, provide a link to the license, and indicate if changes were made
+
+For more information about the CC BY 4.0 license, visit: https://creativecommons.org/licenses/by/4.0/
+
+## About Common Paper
+
+Common Paper agreements are created by a committee of over 40 attorneys representing technology vendors, procurement teams, boutique firms, and Big Law. Each agreement is carefully crafted to be fair, balanced, and understandable to all parties.
+
+All Common Paper agreements are available at: https://commonpaper.com/standards/
