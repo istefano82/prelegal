@@ -22,13 +22,13 @@ export function NDAForm({ data, onChange }: NDAFormProps) {
 
       {/* Purpose Section */}
       <div className="mb-6">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <label className="block text-sm font-semibold text-gray-800 mb-2">
           Purpose
         </label>
         <textarea
           value={data.purpose}
           onChange={(e) => handleInputChange("purpose", e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-gray-900 placeholder-gray-500"
           rows={2}
           placeholder="How Confidential Information may be used"
         />
@@ -36,20 +36,20 @@ export function NDAForm({ data, onChange }: NDAFormProps) {
 
       {/* Effective Date */}
       <div className="mb-6">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <label className="block text-sm font-semibold text-gray-800 mb-2">
           Effective Date
         </label>
         <input
           type="date"
           value={data.effectiveDate}
           onChange={(e) => handleInputChange("effectiveDate", e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
         />
       </div>
 
       {/* MNDA Term */}
       <div className="mb-6">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <label className="block text-sm font-semibold text-gray-800 mb-2">
           MNDA Term
         </label>
         <div className="space-y-2">
@@ -62,7 +62,7 @@ export function NDAForm({ data, onChange }: NDAFormProps) {
               onChange={(e) => handleInputChange("mndaTerm", e.target.value)}
               className="w-4 h-4 text-blue-600"
             />
-            <span className="ml-2 text-gray-700">Expires 1 year(s) from Effective Date</span>
+            <span className="ml-2 text-gray-900">Expires 1 year(s) from Effective Date</span>
           </label>
           <label className="flex items-center">
             <input
@@ -73,14 +73,14 @@ export function NDAForm({ data, onChange }: NDAFormProps) {
               onChange={(e) => handleInputChange("mndaTerm", e.target.value)}
               className="w-4 h-4 text-blue-600"
             />
-            <span className="ml-2 text-gray-700">Continues until terminated in accordance with the terms</span>
+            <span className="ml-2 text-gray-900">Continues until terminated in accordance with the terms</span>
           </label>
         </div>
       </div>
 
       {/* Confidentiality Term */}
       <div className="mb-6">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <label className="block text-sm font-semibold text-gray-800 mb-2">
           Term of Confidentiality
         </label>
         <div className="space-y-2">
@@ -93,7 +93,7 @@ export function NDAForm({ data, onChange }: NDAFormProps) {
               onChange={(e) => handleInputChange("confidentialityTerm", e.target.value)}
               className="w-4 h-4 text-blue-600"
             />
-            <span className="ml-2 text-gray-700">1 year(s) from Effective Date</span>
+            <span className="ml-2 text-gray-900">1 year(s) from Effective Date</span>
           </label>
           <label className="flex items-center">
             <input
@@ -104,7 +104,7 @@ export function NDAForm({ data, onChange }: NDAFormProps) {
               onChange={(e) => handleInputChange("confidentialityTerm", e.target.value)}
               className="w-4 h-4 text-blue-600"
             />
-            <span className="ml-2 text-gray-700">In perpetuity</span>
+            <span className="ml-2 text-gray-900">In perpetuity</span>
           </label>
         </div>
       </div>
@@ -112,26 +112,26 @@ export function NDAForm({ data, onChange }: NDAFormProps) {
       {/* Governing Law & Jurisdiction */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-gray-800 mb-2">
             Governing Law
           </label>
           <input
             type="text"
             value={data.governingLaw}
             onChange={(e) => handleInputChange("governingLaw", e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
             placeholder="e.g., California"
           />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-gray-800 mb-2">
             Jurisdiction
           </label>
           <input
             type="text"
             value={data.jurisdiction}
             onChange={(e) => handleInputChange("jurisdiction", e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
             placeholder="e.g., San Francisco, CA"
           />
         </div>
