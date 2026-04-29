@@ -16,6 +16,13 @@ export function NDAForm({ data, onChange }: NDAFormProps) {
     onChange({ ...data, [field]: value });
   };
 
+  const handleEnumChange = (
+    field: 'mndaTerm' | 'confidentialityTerm',
+    value: string
+  ) => {
+    onChange({ ...data, [field]: value as any });
+  };
+
   return (
     <div className="bg-white rounded-lg shadow p-6 overflow-y-auto max-h-[calc(100vh-2rem)]">
       <h2 className="text-2xl font-bold mb-6 text-gray-900">Mutual NDA Creator</h2>
@@ -59,7 +66,7 @@ export function NDAForm({ data, onChange }: NDAFormProps) {
               name="mndaTerm"
               value="1year"
               checked={data.mndaTerm === "1year"}
-              onChange={(e) => handleInputChange("mndaTerm", e.target.value)}
+              onChange={(e) => handleEnumChange("mndaTerm", e.target.value)}
               className="w-4 h-4 text-blue-600"
             />
             <span className="ml-2 text-gray-900">Expires 1 year(s) from Effective Date</span>
@@ -70,7 +77,7 @@ export function NDAForm({ data, onChange }: NDAFormProps) {
               name="mndaTerm"
               value="continues"
               checked={data.mndaTerm === "continues"}
-              onChange={(e) => handleInputChange("mndaTerm", e.target.value)}
+              onChange={(e) => handleEnumChange("mndaTerm", e.target.value)}
               className="w-4 h-4 text-blue-600"
             />
             <span className="ml-2 text-gray-900">Continues until terminated in accordance with the terms</span>
@@ -90,7 +97,7 @@ export function NDAForm({ data, onChange }: NDAFormProps) {
               name="confidentialityTerm"
               value="1year"
               checked={data.confidentialityTerm === "1year"}
-              onChange={(e) => handleInputChange("confidentialityTerm", e.target.value)}
+              onChange={(e) => handleEnumChange("confidentialityTerm", e.target.value)}
               className="w-4 h-4 text-blue-600"
             />
             <span className="ml-2 text-gray-900">1 year(s) from Effective Date</span>
@@ -101,7 +108,7 @@ export function NDAForm({ data, onChange }: NDAFormProps) {
               name="confidentialityTerm"
               value="perpetual"
               checked={data.confidentialityTerm === "perpetual"}
-              onChange={(e) => handleInputChange("confidentialityTerm", e.target.value)}
+              onChange={(e) => handleEnumChange("confidentialityTerm", e.target.value)}
               className="w-4 h-4 text-blue-600"
             />
             <span className="ml-2 text-gray-900">In perpetuity</span>

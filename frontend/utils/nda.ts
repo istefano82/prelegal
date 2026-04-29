@@ -53,7 +53,7 @@ export function generateNDADocument(data: NDAFormData): string {
   const mndaTermText = data.mndaTerm === "1year" ? "1 year(s)" : "continues until terminated in accordance with the terms of the MNDA";
   const confidentialityTermText = data.confidentialityTerm === "1year" ? "1 year(s) from Effective Date, but in the case of trade secrets until Confidential Information is no longer considered a trade secret under applicable laws" : "In perpetuity";
 
-  let document = `# Mutual Non-Disclosure Agreement
+  const rawDocument = `# Mutual Non-Disclosure Agreement
 
 ## COVER PAGE
 
@@ -92,7 +92,7 @@ ${data.confidentialityTerm === "1year" ? "1 year(s) from Effective Date, but in 
 
 ${ndaStandardTerms}`;
 
-  return document
+  return rawDocument
     .replace(/{{PURPOSE}}/g, data.purpose)
     .replace(/{{EFFECTIVE_DATE}}/g, data.effectiveDate)
     .replace(/{{MNDA_TERM}}/g, mndaTermText)
@@ -100,6 +100,8 @@ ${ndaStandardTerms}`;
     .replace(/{{GOVERNING_LAW}}/g, data.governingLaw)
     .replace(/{{JURISDICTION}}/g, data.jurisdiction);
 }
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function validateFormData(data: NDAFormData): string[] {
   const errors: string[] = [];
@@ -113,12 +115,14 @@ export function validateFormData(data: NDAFormData): string[] {
   if (!data.party1Company.trim()) errors.push("Party 1 Company is required");
   if (!data.party1Address.trim()) errors.push("Party 1 Address is required");
   if (!data.party1Email.trim()) errors.push("Party 1 Email is required");
+  else if (!emailRegex.test(data.party1Email)) errors.push("Party 1 Email is not valid");
   if (!data.party1Date.trim()) errors.push("Party 1 Date is required");
   if (!data.party2Name.trim()) errors.push("Party 2 Name is required");
   if (!data.party2Title.trim()) errors.push("Party 2 Title is required");
   if (!data.party2Company.trim()) errors.push("Party 2 Company is required");
   if (!data.party2Address.trim()) errors.push("Party 2 Address is required");
   if (!data.party2Email.trim()) errors.push("Party 2 Email is required");
+  else if (!emailRegex.test(data.party2Email)) errors.push("Party 2 Email is not valid");
   if (!data.party2Date.trim()) errors.push("Party 2 Date is required");
 
   return errors;
