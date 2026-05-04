@@ -44,7 +44,7 @@ export function PDFDownloadButton({ data }: PDFDownloadButtonProps) {
       const filename = `Mutual-NDA-${new Date().toISOString().split("T")[0]}.pdf`;
 
       const options = {
-        margin: [10, 10, 10, 10],
+        margin: 10 as number,
         filename: filename,
         image: { type: "jpeg", quality: 0.98 },
         html2canvas: { scale: 2 },
