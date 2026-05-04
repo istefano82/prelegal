@@ -1,4 +1,5 @@
 import logging
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 import litellm
@@ -51,11 +52,11 @@ async def send_message(
 
 @router.get("/{conversation_id}/history", response_model=list[MessageSchema])
 async def get_history(
-    conversation_id: str,
+    conversation_id: UUID,
     db: AsyncSession = Depends(get_db),
 ):
     service = ChatService(db)
-    messages = await service.get_history(conversation_id)
+    messages = await service.get_history(str(conversation_id))
 
     if messages is None:
         raise HTTPException(status_code=404, detail="Conversation not found")

@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from litellm import acompletion
 import litellm
+from pydantic import ValidationError
 
 from app.models import Conversation, Message
 from app.schemas import ChatMessageRequest, LegalAnalysisResponse, NDAContextSchema
@@ -51,6 +52,7 @@ class ChatService:
             conversation = result.scalar_one_or_none()
             if conversation:
                 return conversation
+            logger.warning(f"Conversation {conversation_id} not found, creating new conversation")
 
         context_str = None
         if document_context:
@@ -65,11 +67,11 @@ class ChatService:
         stmt = (
             select(Message)
             .where(Message.conversation_id == conversation_id)
-            .order_by(Message.created_at.asc())
+            .order_by(Message.created_at.desc())
             .limit(settings.max_conversation_turns)
         )
         result = await self.db.execute(stmt)
-        messages = result.scalars().all()
+        messages = list(reversed(result.scalars().all()))
 
         return [{"role": msg.role, "content": msg.content} for msg in messages]
 
@@ -84,29 +86,22 @@ class ChatService:
             {"role": "user", "content": user_message}
         ]
 
-        try:
-            response = await acompletion(
-                model=self.model,
-                messages=messages,
-                response_format={"type": "json_object"},
-                temperature=0.3,
-            )
+        response = await acompletion(
+            model=self.model,
+            messages=messages,
+            response_format={"type": "json_object"},
+            temperature=0.3,
+        )
 
-            raw = response.choices[0].message.content
+        raw = response.choices[0].message.content
+        try:
             parsed = json.loads(raw)
             return LegalAnalysisResponse(**parsed)
-        except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse LLM response as JSON: {e}")
+        except (json.JSONDecodeError, ValidationError) as e:
+            logger.error(f"Failed to parse/validate LLM response: {e}. Raw: {raw!r}")
             return LegalAnalysisResponse(
                 answer="Unable to parse AI response",
                 confidence="low",
-            )
-        except (litellm.RateLimitError, litellm.APIError) as e:
-            logger.error(f"LiteLLM API error: {e}")
-            return LegalAnalysisResponse(
-                answer="AI service temporarily unavailable",
-                confidence="low",
-                warnings=["Service error - please try again"],
             )
 
     async def _save_message(
@@ -130,14 +125,17 @@ and respond with valid JSON matching this schema:
 }"""
 
         if context:
+            def sanitize(text: str) -> str:
+                return text.replace("\n", " ").replace("\r", "")
+
             context_info = f"""
 
 Current NDA context:
-- Purpose: {context.purpose}
-- Party 1: {context.party1_company}
-- Party 2: {context.party2_company}
-- Governing Law: {context.governing_law}
-- Jurisdiction: {context.jurisdiction}"""
+- Purpose: {sanitize(context.purpose)}
+- Party 1: {sanitize(context.party1_company)}
+- Party 2: {sanitize(context.party2_company)}
+- Governing Law: {sanitize(context.governing_law)}
+- Jurisdiction: {sanitize(context.jurisdiction)}"""
             return base_prompt + context_info
 
         return base_prompt

@@ -36,6 +36,6 @@ async def test_db():
 
 
 @pytest.fixture
-async def async_client():
+async def async_client(test_db):
     async with AsyncClient(app=app, base_url="http://test") as client:
         yield client

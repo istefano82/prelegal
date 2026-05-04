@@ -4,11 +4,11 @@ from datetime import datetime
 
 
 class NDAContextSchema(BaseModel):
-    purpose: str
-    governing_law: str
-    jurisdiction: str
-    party1_company: str
-    party2_company: str
+    purpose: str = Field(..., min_length=1, max_length=1000)
+    governing_law: str = Field(..., min_length=1, max_length=200)
+    jurisdiction: str = Field(..., min_length=1, max_length=200)
+    party1_company: str = Field(..., min_length=1, max_length=200)
+    party2_company: str = Field(..., min_length=1, max_length=200)
 
 
 class ChatMessageRequest(BaseModel):
