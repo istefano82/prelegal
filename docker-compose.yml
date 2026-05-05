@@ -8,7 +8,7 @@ services:
     env_file:
       - backend/.env
     environment:
-      - DATABASE_URL=sqlite:///./prelegal.db
+      - DATABASE_URL=sqlite+aiosqlite:///./prelegal.db
       - SECRET_KEY=dev-secret-key-change-in-production
       - LITELLM_MODEL=openai/gpt-oss-120b:free
       - ACCESS_TOKEN_EXPIRE_MINUTES=15
