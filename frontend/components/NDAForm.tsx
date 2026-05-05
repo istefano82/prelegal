@@ -1,14 +1,15 @@
 "use client";
 
 import { NDAFormData } from "@/utils/nda";
-import { ChangeEvent } from "react";
+import { FieldHighlight } from "./FieldHighlight";
 
 interface NDAFormProps {
   data: NDAFormData;
   onChange: (data: NDAFormData) => void;
+  highlightedFields?: Set<keyof NDAFormData>;
 }
 
-export function NDAForm({ data, onChange }: NDAFormProps) {
+export function NDAForm({ data, onChange, highlightedFields = new Set() }: NDAFormProps) {
   const handleInputChange = (
     field: keyof NDAFormData,
     value: string
@@ -32,13 +33,15 @@ export function NDAForm({ data, onChange }: NDAFormProps) {
         <label className="block text-sm font-semibold text-gray-800 mb-2">
           Purpose
         </label>
-        <textarea
-          value={data.purpose}
-          onChange={(e) => handleInputChange("purpose", e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-gray-900 placeholder-gray-500"
-          rows={2}
-          placeholder="How Confidential Information may be used"
-        />
+        <FieldHighlight highlighted={highlightedFields.has("purpose")}>
+          <textarea
+            value={data.purpose}
+            onChange={(e) => handleInputChange("purpose", e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-gray-900 placeholder-gray-500"
+            rows={2}
+            placeholder="How Confidential Information may be used"
+          />
+        </FieldHighlight>
       </div>
 
       {/* Effective Date */}

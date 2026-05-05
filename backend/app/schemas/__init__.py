@@ -4,6 +4,7 @@ from app.schemas.chat import (
     NDAContextSchema,
     LegalAnalysisResponse,
     MessageSchema,
+    NDAFieldKey,
 )
 
 __all__ = [
@@ -12,4 +13,5 @@ __all__ = [
     "NDAContextSchema",
     "LegalAnalysisResponse",
     "MessageSchema",
+    "NDAFieldKey",
 ]

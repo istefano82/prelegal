@@ -101,6 +101,27 @@ ${ndaStandardTerms}`;
     .replace(/{{JURISDICTION}}/g, data.jurisdiction);
 }
 
+export const NDA_FIELD_LABELS: Record<keyof NDAFormData, string> = {
+  purpose: "Purpose",
+  effectiveDate: "Effective Date",
+  mndaTerm: "MNDA Term",
+  confidentialityTerm: "Confidentiality Term",
+  governingLaw: "Governing Law",
+  jurisdiction: "Jurisdiction",
+  party1Name: "Party 1 Name",
+  party1Title: "Party 1 Title",
+  party1Company: "Party 1 Company",
+  party1Address: "Party 1 Address",
+  party1Email: "Party 1 Email",
+  party1Date: "Party 1 Date",
+  party2Name: "Party 2 Name",
+  party2Title: "Party 2 Title",
+  party2Company: "Party 2 Company",
+  party2Address: "Party 2 Address",
+  party2Email: "Party 2 Email",
+  party2Date: "Party 2 Date",
+};
+
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function validateFormData(data: NDAFormData): string[] {

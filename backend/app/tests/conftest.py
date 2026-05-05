@@ -36,6 +36,21 @@ async def test_db():
 
 
 @pytest.fixture
+async def db_session(test_db):
+    """Provide a database session for tests."""
+    AsyncSessionLocal = test_db
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
+
+
+@pytest.fixture
 async def async_client(test_db):
     async with AsyncClient(app=app, base_url="http://test") as client:
         yield client

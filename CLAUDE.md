@@ -26,6 +26,17 @@ PreLegal is an AI-powered legal document assistant that helps create and manage 
 - **PDF Export**: PDFDownloadButton component for downloading NDAs as PDF
 - **Code Quality**: Clean architecture with dependency injection, proper error handling
 
+### ✅ Completed (PL-5)
+- **Chat-Driven NDA Creation**: Conversational interface guiding users through NDA field population
+- **AI Field Extraction**: Backend extracts and validates field updates from user responses
+- **Backend Schema Extension**: `NDAContextSchema` extended to all 18 NDA fields
+- **Field Validation**: Allow-list validation and enum coercion on backend
+- **Conversation Persistence**: localStorage support for resuming previous conversations
+- **Field Highlights**: Visual feedback when AI updates form fields
+- **3-Panel Layout**: Chat (left) | Form with highlights (center) | Preview (right)
+- **Error Handling**: User-facing error messages for parse failures
+- **Initial Greeting**: Auto-send AI greeting on page load to start conversation
+
 ### 🔄 Configuration
 - Model: `openrouter/anthropic/claude-3-5-sonnet` (default, configurable via .env)
 - Free tier option: `openrouter/openai/gpt-oss-120b:free`
@@ -34,16 +45,19 @@ PreLegal is an AI-powered legal document assistant that helps create and manage 
 - Static files: Served from `/app/backend/static` directory
 
 ### 📋 Form Fields
-**Document Context:**
-- party1_company, party2_company
-- purpose
-- governing_law
-- jurisdiction
+All 18 NDA fields are now managed through the chat interface:
 
-**Party Information:**
-- name, title, company, email
-- notice_address
-- signature_date
+**Document Context:**
+- purpose, effectiveDate, mndaTerm, confidentialityTerm
+- governingLaw, jurisdiction
+
+**Party 1 Information:**
+- party1Name, party1Title, party1Company
+- party1Address, party1Email, party1Date
+
+**Party 2 Information:**
+- party2Name, party2Title, party2Company
+- party2Address, party2Email, party2Date
 
 ### 🚀 Running Locally
 ```bash
@@ -70,26 +84,41 @@ uvicorn app.main:app --reload
 - `conversations` - conversation metadata, timestamps
 - `messages` - message history with role (user/assistant), timestamps
 
-### 🔄 Recent Fixes (Session 2)
-- Fixed TypeScript errors in PDFDownloadButton.tsx (margin, image.type, orientation literal types)
-- Fixed CORS_ORIGINS parsing in Pydantic (changed field type to `str | list[str]`)
-- Added static file serving to FastAPI via StaticFiles middleware
-- Updated model to `openrouter/openai/gpt-oss-120b:free` (user preference)
-- Fixed docker-compose to load `.env` file properly
+### 🔄 Recent Changes (Session 3 - PL-5)
+- Implemented chat-guided NDA creation interface
+- Extended backend `LegalAnalysisResponse` with `field_updates` dict for explicit field mapping
+- Added `_sanitize_field_updates()` in `ChatService` with allow-list validation and enum coercion
+- Rewrote system prompt to guide sequential field collection
+- Created `ChatPanel` component with message history and conversation persistence via localStorage
+- Added `FieldHighlight` component for visual feedback on field updates
+- Implemented 3-panel responsive layout (chat | form | preview)
+- Updated `NDAForm` to accept and apply highlights on AI-updated fields
+- Extended `NDAContextSchema` to support all 18 NDA fields (previously 5)
 
 ### ⚠️ Known Limitations
 1. Free model has limited structured output support (responses may show "Unable to parse AI response")
 2. SQLite write serialization (upgrade to PostgreSQL for >100 concurrent writes)
-3. No user authentication yet (coming in PL-5)
-4. No rate limiting (coming in PL-5)
+3. Conversation context loss beyond 20-message window (history truncated on backend)
+4. No user authentication yet (coming in PL-6)
+5. No rate limiting (coming in PL-6)
 
-### 📝 Next Steps (PL-5+)
+### 📝 Future Features (PL-6+)
+
+**Manual Edit Mode Override:**
+- [ ] Add toggle to switch between chat-only and chat + form edit modes
+- [ ] Allow power users to edit form fields manually while in chat mode
+- [ ] Preserve chat context while accepting manual field corrections
+- [ ] Consider adding a "Corrections" panel for tracking manual overrides
+
+**Other Planned Features:**
 - User authentication (JWT)
 - Multi-document support (MSA, DPA, etc.)
-- Message streaming for real-time responses
-- Conversation sharing
-- PostgreSQL migration
+- Message streaming for real-time responses (WebSocket or SSE)
+- Conversation sharing with other users
+- PostgreSQL migration for production scale
 - Comprehensive test coverage
+- Conversation history export (PDF, JSON)
+- Field validation feedback in chat
 
 ## Environment Configuration
 Required `.env` values:

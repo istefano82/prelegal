@@ -1,16 +1,29 @@
 import json
 import logging
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc
+from sqlalchemy import select
 from litellm import acompletion
-import litellm
 from pydantic import ValidationError
 
 from app.models import Conversation, Message
-from app.schemas import ChatMessageRequest, LegalAnalysisResponse, NDAContextSchema
+from app.schemas import LegalAnalysisResponse, NDAContextSchema
 from app.config import settings
 
 logger = logging.getLogger(__name__)
+
+_VALID_NDA_FIELDS: frozenset[str] = frozenset({
+    "purpose", "effectiveDate", "mndaTerm", "confidentialityTerm",
+    "governingLaw", "jurisdiction",
+    "party1Name", "party1Title", "party1Company",
+    "party1Address", "party1Email", "party1Date",
+    "party2Name", "party2Title", "party2Company",
+    "party2Address", "party2Email", "party2Date",
+})
+
+_ENUM_CONSTRAINTS: dict[str, set[str]] = {
+    "mndaTerm": {"1year", "continues"},
+    "confidentialityTerm": {"1year", "perpetual"},
+}
 
 
 class ChatService:
@@ -96,6 +109,8 @@ class ChatService:
         raw = response.choices[0].message.content
         try:
             parsed = json.loads(raw)
+            if "field_updates" in parsed and isinstance(parsed["field_updates"], dict):
+                parsed["field_updates"] = self._sanitize_field_updates(parsed["field_updates"])
             return LegalAnalysisResponse(**parsed)
         except (json.JSONDecodeError, ValidationError) as e:
             logger.error(f"Failed to parse/validate LLM response: {e}. Raw: {raw!r}")
@@ -112,30 +127,99 @@ class ChatService:
         await self.db.flush()
         return message
 
+    def _sanitize_field_updates(self, raw: dict) -> dict[str, str]:
+        result = {}
+        for key, value in raw.items():
+            if key not in _VALID_NDA_FIELDS:
+                logger.warning(f"Skipping invalid field key: {key}")
+                continue
+            if not isinstance(value, str):
+                logger.warning(f"Skipping non-string value for field {key}: {type(value)}")
+                continue
+            if key in _ENUM_CONSTRAINTS and value not in _ENUM_CONSTRAINTS[key]:
+                logger.warning(f"Invalid enum value {value!r} for field {key}, expected one of {_ENUM_CONSTRAINTS[key]}")
+                continue
+            result[key] = value
+        return result
+
     def _build_system_prompt(self, context: NDAContextSchema | None) -> str:
-        base_prompt = """You are a legal drafting assistant specializing in mutual NDAs.
-You help users improve and refine NDA language. Be precise, use plain English,
-and respond with valid JSON matching this schema:
+        base_prompt = """You are an NDA creation assistant. Your job is to guide users through creating a Mutual NDA by asking for information one field at a time, in order.
+
+CRITICAL: Always respond with VALID JSON matching this schema EXACTLY:
 {
-  "answer": "direct answer to the question",
+  "answer": "Your conversational response, friendly and clear",
   "confidence": "high|medium|low",
-  "suggested_clauses": ["clause suggestion 1", "clause suggestion 2"],
-  "warnings": ["legal risk or consideration"],
-  "follow_up_questions": ["clarifying question 1", "clarifying question 2"]
-}"""
+  "field_updates": {"fieldName": "value"},
+  "follow_up_questions": ["next question if applicable"],
+  "warnings": [],
+  "suggested_clauses": []
+}
+
+FIELD COLLECTION ORDER (ask for each in sequence):
+1. purpose - Why is this NDA needed?
+2. effectiveDate - What date should it start? (YYYY-MM-DD format)
+3. mndaTerm - Duration: must be exactly "1year" or "continues"
+4. confidentialityTerm - How long confidentiality lasts: must be exactly "1year" or "perpetual"
+5. governingLaw - Which state's laws?
+6. jurisdiction - Which courts have jurisdiction?
+7. party1Name - First party signatory name
+8. party1Title - First party title
+9. party1Company - First party company
+10. party1Address - First party notice address
+11. party1Email - First party email
+12. party1Date - First party signing date (YYYY-MM-DD)
+13. party2Name - Second party signatory name
+14. party2Title - Second party title
+15. party2Company - Second party company
+16. party2Address - Second party notice address
+17. party2Email - Second party email
+18. party2Date - Second party signing date (YYYY-MM-DD)
+
+RULES:
+- When user provides a value for a field, include it in field_updates ONLY if it's substantial (not empty/null)
+- Use the EXACT field name from the list above as the dict key in field_updates
+- For mndaTerm: ONLY output "1year" or "continues"
+- For confidentialityTerm: ONLY output "1year" or "perpetual"
+- For dates: accept formats like "2025-01-15" or parse natural language but output YYYY-MM-DD
+- Ask for fields in order; if a field is already provided in context, skip it and ask for the next missing one
+- Keep responses conversational and brief
+- After collecting all fields, confirm completion"""
 
         if context:
-            def sanitize(text: str) -> str:
-                return text.replace("\n", " ").replace("\r", "")
+            def format_field(value: str | None) -> str:
+                if value is None or value == "":
+                    return "not yet provided"
+                return str(value)
+
+            context_fields = []
+            fields_to_check = [
+                ("purpose", context.purpose),
+                ("effectiveDate", context.effectiveDate),
+                ("mndaTerm", context.mndaTerm),
+                ("confidentialityTerm", context.confidentialityTerm),
+                ("governingLaw", context.governingLaw),
+                ("jurisdiction", context.jurisdiction),
+                ("party1Name", context.party1Name),
+                ("party1Title", context.party1Title),
+                ("party1Company", context.party1Company),
+                ("party1Address", context.party1Address),
+                ("party1Email", context.party1Email),
+                ("party1Date", context.party1Date),
+                ("party2Name", context.party2Name),
+                ("party2Title", context.party2Title),
+                ("party2Company", context.party2Company),
+                ("party2Address", context.party2Address),
+                ("party2Email", context.party2Email),
+                ("party2Date", context.party2Date),
+            ]
+
+            for field_name, field_value in fields_to_check:
+                context_fields.append(f"  {field_name}: {format_field(field_value)}")
 
             context_info = f"""
 
-Current NDA context:
-- Purpose: {sanitize(context.purpose)}
-- Party 1: {sanitize(context.party1_company)}
-- Party 2: {sanitize(context.party2_company)}
-- Governing Law: {sanitize(context.governing_law)}
-- Jurisdiction: {sanitize(context.jurisdiction)}"""
+CURRENT NDA STATE:
+{chr(10).join(context_fields)}"""
             return base_prompt + context_info
 
         return base_prompt
