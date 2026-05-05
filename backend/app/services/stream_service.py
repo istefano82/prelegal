@@ -92,6 +92,7 @@ class StreamService:
             yield self._format_sse_frame(
                 event="field_updates",
                 data={
+                    "answer": analysis.answer,
                     "field_updates": analysis.field_updates,
                     "confidence": analysis.confidence,
                     "suggested_clauses": analysis.suggested_clauses,
