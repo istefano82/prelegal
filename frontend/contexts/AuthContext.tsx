@@ -214,10 +214,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     dispatch({ type: "CLEAR_ERROR" });
   }, []);
 
-  if (!isInitialized) {
-    return null;
-  }
-
   const value: AuthContextType = {
     state,
     login,
