@@ -61,8 +61,8 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-7xl mx-auto h-screen flex flex-col">
+    <main className="h-screen overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="max-w-7xl mx-auto h-full flex flex-col">
         <div className="mb-4 flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-1">Mutual NDA Creator</h1>
@@ -77,7 +77,7 @@ export default function Home() {
         {/* Main Content - 2 Panel Layout */}
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0">
           {/* Chat Panel - Left */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 min-h-0">
             <ChatPanel
               conversationId={conversationId}
               onConversationStart={handleConversationStart}
@@ -88,7 +88,7 @@ export default function Home() {
           </div>
 
           {/* Preview Panel - Right */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 min-h-0">
             <NDAPreview data={formData} />
           </div>
         </div>

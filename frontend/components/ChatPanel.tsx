@@ -285,8 +285,8 @@ export function ChatPanel({
   };
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg shadow">
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+    <div className="flex flex-col h-full min-h-0 bg-white rounded-lg shadow">
+      <div className="flex-1 overflow-y-auto min-h-0 p-4 space-y-4">
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
             {error}
@@ -316,14 +316,6 @@ export function ChatPanel({
               }`}
             >
               <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-              {msg.extractedFields &&
-                Object.keys(msg.extractedFields).length > 0 && (
-                  <div className="mt-2 pt-2 border-t border-gray-300 text-xs">
-                    <span className="font-semibold">
-                      Set: {Object.keys(msg.extractedFields).join(", ")}
-                    </span>
-                  </div>
-                )}
             </div>
           </div>
         ))}
