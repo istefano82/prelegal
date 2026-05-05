@@ -123,7 +123,7 @@ export function ChatPanel({
 
       sendInitialGreeting();
     }
-  }, [conversationId, messages.length, sessionId, isAuthenticated, user?.id, formData, onConversationStart, onFieldUpdates]);
+  }, [conversationId, messages.length, sessionId]);
 
   const formDataToContext = (data: NDAFormData): NDAContextPayload => {
     return {
