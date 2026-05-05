@@ -6,6 +6,7 @@ from litellm import acompletion
 from pydantic import ValidationError
 
 from app.services.chat_service import ChatService, ConversationOwner
+from app.services.document_service import DocumentService
 from app.schemas import LegalAnalysisResponse, NDAContextSchema
 from app.config import settings
 
@@ -88,6 +89,20 @@ class StreamService:
             )
             await self.db.commit()
 
+            # Auto-save snapshot if all NDA fields are populated
+            if document_context and self._all_fields_populated(document_context):
+                try:
+                    doc_service = DocumentService(self.db)
+                    await doc_service.save_snapshot(
+                        owner,
+                        conversation.id,
+                        document_context,
+                        title=f"NDA - {document_context.purpose[:50] if document_context.purpose else 'Untitled'}",
+                    )
+                    await self.db.commit()
+                except Exception as e:
+                    logger.warning(f"Failed to auto-save snapshot: {e}")
+
             # Yield field updates event
             yield self._format_sse_frame(
                 event="field_updates",
@@ -120,6 +135,35 @@ class StreamService:
                     "message": "An error occurred while streaming the response",
                 },
             )
+
+    @staticmethod
+    def _all_fields_populated(context: NDAContextSchema) -> bool:
+        """
+        Check if all required NDA fields are populated.
+        Returns True if 17 of 18 fields are non-null (allowing for optional flexibility).
+        """
+        fields = [
+            context.purpose,
+            context.effectiveDate,
+            context.mndaTerm,
+            context.confidentialityTerm,
+            context.governingLaw,
+            context.jurisdiction,
+            context.party1Name,
+            context.party1Title,
+            context.party1Company,
+            context.party1Address,
+            context.party1Email,
+            context.party1Date,
+            context.party2Name,
+            context.party2Title,
+            context.party2Company,
+            context.party2Address,
+            context.party2Email,
+            context.party2Date,
+        ]
+        populated_count = sum(1 for field in fields if field)
+        return populated_count >= 17
 
     @staticmethod
     def _format_sse_frame(event: str, data: dict) -> str:
