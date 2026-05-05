@@ -166,9 +166,9 @@ class AuthService:
                 await self.db.flush()
                 return session
 
-        # Create new session
+        # Create new session, using the provided session_id as the DB key if available
         session = AnonymousSession(
-            id=str(uuid4()),
+            id=session_id if session_id else str(uuid4()),
             created_at=datetime.now(timezone.utc),
             last_seen_at=datetime.now(timezone.utc),
             expires_at=datetime.now(timezone.utc) + timedelta(days=settings.anonymous_session_expire_days),

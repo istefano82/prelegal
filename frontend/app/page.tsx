@@ -53,6 +53,10 @@ export default function Home() {
     setConversationId(id);
   };
 
+  const handleConversationReset = () => {
+    setConversationId(null);
+  };
+
   if (!mounted) {
     return null;
   }
@@ -75,6 +79,7 @@ export default function Home() {
             <ChatPanel
               conversationId={conversationId}
               onConversationStart={handleConversationStart}
+              onConversationReset={handleConversationReset}
               formData={formData}
               onFieldUpdates={handleFieldUpdates}
             />

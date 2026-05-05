@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { NDAFormData } from "@/utils/nda";
-import { NDAContextPayload, streamChatMessage } from "@/utils/api";
+import { NDAContextPayload, streamChatMessage, getConversationHistory } from "@/utils/api";
 import { useSession } from "@/hooks/useSession";
 
 interface ChatMessage {
@@ -16,6 +16,7 @@ interface ChatMessage {
 interface ChatPanelProps {
   conversationId: string | null;
   onConversationStart: (id: string) => void;
+  onConversationReset: () => void;
   formData: NDAFormData;
   onFieldUpdates: (updates: Partial<NDAFormData>) => void;
 }
@@ -23,6 +24,7 @@ interface ChatPanelProps {
 export function ChatPanel({
   conversationId,
   onConversationStart,
+  onConversationReset,
   formData,
   onFieldUpdates,
 }: ChatPanelProps) {
@@ -40,6 +42,41 @@ export function ChatPanel({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    if (conversationId && messages.length === 0 && sessionId) {
+      const loadHistory = async () => {
+        const headers: Record<string, string> = {};
+        if (isAuthenticated && user?.id) {
+          const token = await getAccessToken();
+          if (token) headers["Authorization"] = `Bearer ${token}`;
+        } else if (sessionId) {
+          headers["X-Session-ID"] = sessionId;
+        }
+
+        try {
+          const history = await getConversationHistory(conversationId, headers);
+          if (history.length === 0) {
+            localStorage.removeItem("conversationId");
+            onConversationReset();
+          } else {
+            setMessages(
+              history.map((msg) => ({
+                id: msg.id,
+                role: msg.role as "user" | "assistant",
+                content: msg.content,
+              }))
+            );
+          }
+        } catch {
+          localStorage.removeItem("conversationId");
+          onConversationReset();
+        }
+      };
+
+      loadHistory();
+    }
+  }, [conversationId, messages.length, sessionId]);
 
   useEffect(() => {
     if (!conversationId && messages.length === 0 && sessionId) {

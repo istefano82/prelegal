@@ -51,12 +51,16 @@ export async function sendChatMessage(
 }
 
 export async function getConversationHistory(
-  conversationId: string
+  conversationId: string,
+  headers: Record<string, string> = {}
 ): Promise<Message[]> {
-  const response = await fetch(`${BASE_URL}/chat/${conversationId}/history`);
+  const response = await fetch(`${BASE_URL}/chat/${conversationId}/history`, {
+    headers,
+    credentials: "include",
+  });
 
   if (!response.ok) {
-    throw new Error(`History API error: ${response.statusText}`);
+    throw new Error(`History API error: ${response.status}`);
   }
 
   return response.json();
