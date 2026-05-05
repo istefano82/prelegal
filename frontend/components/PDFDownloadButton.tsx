@@ -62,17 +62,17 @@ export function PDFDownloadButton({ data }: PDFDownloadButtonProps) {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="relative">
       <button
         onClick={handleDownloadPDF}
         disabled={isLoading}
-        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+        className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white font-semibold py-2.5 px-5 rounded-lg transition-colors text-sm whitespace-nowrap"
       >
-        {isLoading ? "Generating PDF..." : "Download as PDF"}
+        {isLoading ? "Generating..." : "⬇ Download PDF"}
       </button>
       {errors.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-          <p className="text-red-700 font-semibold text-sm mb-2">Validation Errors:</p>
+        <div className="absolute top-full right-0 mt-2 w-72 bg-red-50 border border-red-200 rounded-lg p-3 z-10 shadow-lg">
+          <p className="text-red-700 font-semibold text-sm mb-2">Cannot generate PDF:</p>
           <ul className="list-disc list-inside space-y-1">
             {errors.map((error, index) => (
               <li key={index} className="text-red-700 text-sm">

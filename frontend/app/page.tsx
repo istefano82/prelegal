@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { NDAFormData } from "@/utils/nda";
-import { NDAForm } from "@/components/NDAForm";
 import { NDAPreview } from "@/components/NDAPreview";
 import { PDFDownloadButton } from "@/components/PDFDownloadButton";
 import { ChatPanel } from "@/components/ChatPanel";
@@ -64,16 +63,19 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-7xl mx-auto h-screen flex flex-col">
-        <div className="mb-8 flex justify-between items-start">
+        <div className="mb-4 flex justify-between items-center">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Mutual NDA Creator</h1>
-            <p className="text-lg text-gray-600">Create a professional Mutual Non-Disclosure Agreement with AI guidance</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-1">Mutual NDA Creator</h1>
+            <p className="text-gray-600">Create a professional Mutual Non-Disclosure Agreement with AI guidance</p>
           </div>
-          <AuthButton />
+          <div className="flex items-center gap-3">
+            <PDFDownloadButton data={formData} />
+            <AuthButton />
+          </div>
         </div>
 
-        {/* Main Content - 3 Panel Layout */}
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0 mb-6">
+        {/* Main Content - 2 Panel Layout */}
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0">
           {/* Chat Panel - Left */}
           <div className="lg:col-span-1">
             <ChatPanel
@@ -85,20 +87,10 @@ export default function Home() {
             />
           </div>
 
-          {/* Form Panel - Center */}
-          <div className="lg:col-span-1">
-            <NDAForm data={formData} onChange={setFormData} highlightedFields={chatHighlights} />
-          </div>
-
           {/* Preview Panel - Right */}
           <div className="lg:col-span-1">
             <NDAPreview data={formData} />
           </div>
-        </div>
-
-        {/* Download Button - Full Width */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <PDFDownloadButton data={formData} />
         </div>
       </div>
     </main>

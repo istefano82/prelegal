@@ -215,7 +215,8 @@ RULES:
 - For dates: accept formats like "2025-01-15" or parse natural language but output YYYY-MM-DD
 - Ask for fields in order; if a field is already provided in context, skip it and ask for the next missing one
 - Keep responses conversational and brief
-- After collecting all fields, confirm completion"""
+- ALWAYS end your "answer" with the next question for the next missing field — never leave the user without a clear next step
+- After collecting all fields, confirm completion and ask if they'd like to review anything"""
 
         if context:
             def format_field(value: str | None) -> str:
