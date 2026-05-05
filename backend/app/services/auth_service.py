@@ -2,15 +2,20 @@ from datetime import datetime, timezone, timedelta
 from typing import Optional
 import json
 import httpx
+import re
 from jose import JWTError, jwt
 from uuid import uuid4
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
+from passlib.context import CryptContext
 
 from app.models import User, AnonymousSession
 from app.schemas import GoogleProfile, TokenPair, TokenPayload, UserSchema
 from app.config import settings
-from app.exceptions import AuthError
+from app.exceptions import AuthError, ValidationError, WeakPasswordError
+
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class AuthService:
@@ -150,6 +155,25 @@ class AuthService:
         except JWTError:
             raise AuthError("Invalid or expired token", 401)
 
+    def verify_refresh_token(self, token: str) -> TokenPayload:
+        """
+        Verify and decode a refresh token.
+        Raises AuthError if token is invalid or expired.
+        """
+        try:
+            payload = jwt.decode(
+                token,
+                settings.secret_key,
+                algorithms=["HS256"],
+            )
+
+            if payload.get("type") != "refresh":
+                raise AuthError("Invalid token type", 401)
+
+            return TokenPayload(**payload)
+        except JWTError:
+            raise AuthError("Invalid or expired refresh token", 401)
+
     async def get_or_create_anonymous_session(self, session_id: Optional[str] = None) -> AnonymousSession:
         """
         Get an existing anonymous session or create a new one.
@@ -201,3 +225,77 @@ class AuthService:
         await self.db.execute(stmt)
 
         return result.rowcount
+
+    @staticmethod
+    def _validate_password_strength(password: str) -> None:
+        """
+        Validate password meets strength requirements.
+        Raises WeakPasswordError if validation fails.
+        """
+        if len(password) < 8:
+            raise WeakPasswordError("Password must be at least 8 characters")
+        if not any(c.isupper() for c in password):
+            raise WeakPasswordError("Password must contain an uppercase letter")
+        if not any(c.isdigit() for c in password):
+            raise WeakPasswordError("Password must contain a digit")
+        if not any(c in "!@#$%^&*()_+-=[]{}|;':\",./<>?" for c in password):
+            raise WeakPasswordError("Password must contain a special character")
+
+    @staticmethod
+    def _validate_email_format(email: str) -> None:
+        """
+        Validate email format.
+        Raises ValidationError if invalid.
+        """
+        email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        if not re.match(email_pattern, email):
+            raise ValidationError("Invalid email format", field="email")
+
+    async def register_user(self, email: str, password: str, name: str | None = None) -> User:
+        """
+        Register a new user with email and password.
+        Raises ValidationError if email already exists or validation fails.
+        """
+        self._validate_email_format(email)
+        self._validate_password_strength(password)
+
+        # Check email uniqueness
+        stmt = select(User).where(User.email == email)
+        result = await self.db.execute(stmt)
+        existing_user = result.scalar_one_or_none()
+
+        if existing_user:
+            raise ValidationError("Email already registered", field="email")
+
+        # Hash password and create user
+        password_hash = pwd_context.hash(password)
+        user = User(
+            id=str(uuid4()),
+            email=email,
+            name=name,
+            password_hash=password_hash,
+            created_at=datetime.now(timezone.utc),
+            last_login_at=datetime.now(timezone.utc),
+            is_active=True,
+        )
+        self.db.add(user)
+        await self.db.flush()
+        return user
+
+    async def authenticate_user(self, email: str, password: str) -> User:
+        """
+        Authenticate user with email and password.
+        Raises AuthError if credentials are invalid.
+        """
+        stmt = select(User).where(User.email == email)
+        result = await self.db.execute(stmt)
+        user = result.scalar_one_or_none()
+
+        if not user or not user.password_hash or not pwd_context.verify(password, user.password_hash):
+            raise AuthError("Invalid credentials", 401)
+
+        # Update last login
+        user.last_login_at = datetime.now(timezone.utc)
+        self.db.add(user)
+        await self.db.flush()
+        return user

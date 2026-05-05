@@ -7,9 +7,9 @@ from uuid import uuid4
 from app.dependencies import get_db, get_current_user
 from app.services import AuthService
 from app.models import User
-from app.schemas import UserSchema, TokenPair, AuthResponse
+from app.schemas import UserSchema, TokenPair, AuthResponse, RegisterRequest, LoginRequest
 from app.config import settings
-from app.exceptions import AuthError
+from app.exceptions import AuthError, ValidationError, WeakPasswordError
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -110,7 +110,7 @@ async def refresh_token(request: Request, db: AsyncSession = Depends(get_db)):
 
     try:
         auth_service = AuthService(db)
-        payload = auth_service.verify_access_token(refresh_token_value)
+        payload = auth_service.verify_refresh_token(refresh_token_value)
 
         # Get user
         user = await db.get(User, payload.sub)
@@ -134,6 +134,109 @@ async def refresh_token(request: Request, db: AsyncSession = Depends(get_db)):
 
     except AuthError:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+
+@router.post("/register", response_model=AuthResponse, status_code=201)
+async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
+    """
+    Register a new user with email and password.
+    """
+    try:
+        auth_service = AuthService(db)
+        user = await auth_service.register_user(body.email, body.password, body.name)
+        await db.commit()
+
+        token_pair = auth_service.create_token_pair(user)
+
+        response = Response(status_code=201)
+        response.set_cookie(
+            key="access_token",
+            value=token_pair.access_token,
+            httponly=True,
+            samesite="lax",
+            secure=settings.cookie_secure,
+            max_age=settings.access_token_expire_minutes * 60,
+        )
+        response.set_cookie(
+            key="refresh_token",
+            value=token_pair.refresh_token,
+            httponly=True,
+            samesite="lax",
+            secure=settings.cookie_secure,
+            max_age=settings.refresh_token_expire_days * 86400,
+        )
+
+        return AuthResponse(
+            access_token=token_pair.access_token,
+            refresh_token=token_pair.refresh_token,
+            token_type="bearer",
+            user=UserSchema.model_validate(user),
+        )
+
+    except WeakPasswordError as e:
+        raise HTTPException(
+            status_code=422,
+            detail={"code": "WEAK_PASSWORD", "message": e.message, "field": "password"},
+        )
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=422,
+            detail={"code": "VALIDATION_ERROR", "message": e.message, "field": e.field},
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={"code": "REGISTRATION_ERROR", "message": "Registration failed"},
+        )
+
+
+@router.post("/login", response_model=AuthResponse)
+async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
+    """
+    Authenticate user with email and password.
+    """
+    try:
+        auth_service = AuthService(db)
+        user = await auth_service.authenticate_user(body.email, body.password)
+        await db.commit()
+
+        token_pair = auth_service.create_token_pair(user)
+
+        response = Response()
+        response.set_cookie(
+            key="access_token",
+            value=token_pair.access_token,
+            httponly=True,
+            samesite="lax",
+            secure=settings.cookie_secure,
+            max_age=settings.access_token_expire_minutes * 60,
+        )
+        response.set_cookie(
+            key="refresh_token",
+            value=token_pair.refresh_token,
+            httponly=True,
+            samesite="lax",
+            secure=settings.cookie_secure,
+            max_age=settings.refresh_token_expire_days * 86400,
+        )
+
+        return AuthResponse(
+            access_token=token_pair.access_token,
+            refresh_token=token_pair.refresh_token,
+            token_type="bearer",
+            user=UserSchema.model_validate(user),
+        )
+
+    except AuthError as e:
+        raise HTTPException(
+            status_code=e.status_code,
+            detail={"code": "INVALID_CREDENTIALS", "message": e.message},
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={"code": "LOGIN_ERROR", "message": "Login failed"},
+        )
 
 
 @router.post("/logout")

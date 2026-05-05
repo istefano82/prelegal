@@ -13,6 +13,8 @@ from app.schemas.auth import (
     GoogleProfile,
     GoogleAuthRequest,
     AuthResponse,
+    RegisterRequest,
+    LoginRequest,
 )
 
 __all__ = [
@@ -28,4 +30,6 @@ __all__ = [
     "GoogleProfile",
     "GoogleAuthRequest",
     "AuthResponse",
+    "RegisterRequest",
+    "LoginRequest",
 ]

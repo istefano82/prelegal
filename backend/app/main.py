@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from app.config import settings
 from app.database import engine, Base
 from app.routers import chat_router, auth_router
-from app.exceptions import AuthError, OwnershipError
+from app.exceptions import AuthError, OwnershipError, ValidationError, NotFoundError
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger(__name__)
@@ -65,6 +65,22 @@ async def ownership_error_handler(request: Request, exc: OwnershipError):
     return JSONResponse(
         status_code=403,
         content={"error": {"code": "FORBIDDEN", "message": exc.message}},
+    )
+
+
+@app.exception_handler(ValidationError)
+async def validation_error_handler(request: Request, exc: ValidationError):
+    return JSONResponse(
+        status_code=422,
+        content={"error": {"code": "VALIDATION_ERROR", "message": exc.message, "field": exc.field}},
+    )
+
+
+@app.exception_handler(NotFoundError)
+async def not_found_error_handler(request: Request, exc: NotFoundError):
+    return JSONResponse(
+        status_code=404,
+        content={"error": {"code": "NOT_FOUND", "message": exc.message}},
     )
 
 
