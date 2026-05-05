@@ -8,7 +8,7 @@ PreLegal is an AI-powered legal document assistant that helps create and manage 
 - **Backend**: FastAPI with Python 3.12, SQLAlchemy ORM
 - **Database**: SQLite (async with aiosqlite)
 - **LLM Integration**: LiteLLM with OpenRouter (openai/gpt-oss-120b:free by default)
-- **Deployment**: Docker with docker-compose
+- **Deployment**: Docker (`docker build` + `docker run`) via `scripts/start-linux.sh`
 
 ## Current Implementation Status
 
@@ -32,10 +32,8 @@ PreLegal is an AI-powered legal document assistant that helps create and manage 
 - **Backend Schema Extension**: `NDAContextSchema` extended to all 18 NDA fields
 - **Field Validation**: Allow-list validation and enum coercion on backend
 - **Conversation Persistence**: localStorage support for resuming previous conversations
-- **Field Highlights**: Visual feedback when AI updates form fields
-- **3-Panel Layout**: Chat (left) | Form with highlights (center) | Preview (right)
-- **Error Handling**: User-facing error messages for parse failures
 - **Initial Greeting**: Auto-send AI greeting on page load to start conversation
+- **Error Handling**: User-facing error messages for parse failures
 
 ### ✅ Completed (PL-6)
 - **User Authentication**: OAuth with Google via backend-driven OAuth flow
@@ -49,11 +47,16 @@ PreLegal is an AI-powered legal document assistant that helps create and manage 
 - **Session Headers**: X-Session-ID for guests, Authorization Bearer for authenticated users
 - **OAuth Callback**: Popup-based flow with postMessage signaling
 - **StreamingResponse**: Frontend async generator consuming SSE events with field_updates parsing
+- **2-Panel Layout**: Chat (left) | Document Preview (right) — form removed, all fields via chat
+- **PDF Download**: Button in header (emerald style), validates fields before generating
+- **Conversation Resume**: Page reload restores prior conversation via localStorage + history endpoint
+- **Ownership Fix**: AnonymousSession correctly persists frontend session ID (no new UUID per request)
+- **AI Follow-on Questions**: System prompt enforces AI always asks next question after each answer
 
 ### 🔄 Configuration
-- Model: `openrouter/anthropic/claude-3-5-sonnet` (default, configurable via .env)
-- Free tier option: `openrouter/openai/gpt-oss-120b:free`
-- Environment variables: Load from `backend/.env` via docker-compose
+- Model: `openrouter/openai/gpt-oss-120b:free` (default, configurable via .env)
+- Alternative paid option: `openrouter/anthropic/claude-3-5-sonnet`
+- Environment variables: Load from `backend/.env` (passed via `--env-file` to Docker)
 - CORS: Configured for `http://localhost:3000` and `http://localhost:8000`
 - Static files: Served from `/app/backend/static` directory
 
@@ -74,15 +77,20 @@ All 18 NDA fields are now managed through the chat interface:
 
 ### 🚀 Running Locally
 ```bash
-# Development (Docker)
+# Start (builds Docker image and runs container)
 sudo ./scripts/start-linux.sh
 # Access at http://localhost:8000
+
+# Stop
+./scripts/stop-linux.sh
 
 # Development (without Docker)
 cd backend && python -m venv venv && source venv/bin/activate
 pip install -e ".[dev]"
 uvicorn app.main:app --reload
 ```
+
+Scripts use `docker build -t prelegal_app <project_dir>` + `docker run -d -p 8000:8000 --env-file backend/.env --name prelegal_app prelegal_app`. No docker-compose required.
 
 ### 🔐 Security
 - ✅ Input validation via Pydantic
@@ -103,99 +111,20 @@ uvicorn app.main:app --reload
 - `users` - authenticated user profiles (email, google_id, avatar, timestamps)
 - `anonymous_sessions` - guest session ownership with expiry and migration tracking
 
-### 🔄 Recent Changes (Session 4 - PL-6 In Progress)
-
-**Backend - Complete (Auth, Ownership, Streaming):**
-- ✅ User model with OAuth integration (Google profile, timestamps, active status)
-- ✅ AnonymousSession model for guest conversation ownership with 30-day TTL
-- ✅ AuthService: Google OAuth exchange, JWT minting/verification, session management, conversation migration
-- ✅ Auth router: GET /auth/google/authorize, GET /auth/google/callback, POST /auth/refresh, POST /auth/logout, GET /auth/me
-- ✅ Updated dependencies: get_current_user, require_user, get_conversation_owner (ConversationOwner dataclass)
-- ✅ Chat router ownership enforcement: Both POST /chat/message and GET /chat/{id}/history verify ownership
-- ✅ ChatService: Modified to accept ConversationOwner, set/verify ownership on conversation creation/access
-- ✅ StreamService: Streaming responses via SSE with token events, field_updates, done, error events
-- ✅ POST /chat/stream endpoint: Real-time message streaming with Media Type text/event-stream
-- ✅ Exception handlers: AuthError (401), OwnershipError (403) with structured JSON responses
-- ✅ Added httpx to runtime dependencies for Google OAuth token exchange
-- ✅ Updated docker-compose with Google OAuth and token expiry settings
-
-**Frontend - Complete (Session 4 - PL-6):**
-- ✅ AuthContext + useReducer for auth state machine (loading/unauthenticated/authenticated)
-- ✅ useAuth, useSession, useSSEChat custom hooks for component integration
-- ✅ AuthModal component with Google OAuth popup and success signaling
-- ✅ UserMenu component for authenticated user profile and logout
-- ✅ AuthButton toggle (Sign In / User Menu)
-- ✅ Session-based ownership for unauthenticated users (sessionId in localStorage)
-- ✅ SSE streaming in ChatPanel via async generator and fetch ReadableStream
-- ✅ Token/session ID header injection (Authorization Bearer + X-Session-ID)
-- ✅ OAuth callback handler (app/auth/callback/page.tsx) with postMessage integration
-- ✅ streamChatMessage() utility function for consuming SSE events
-
-### 🔄 Recent Changes (Session 3 - PL-5 Complete)
-
-**Backend:**
-- Extended `NDAContextSchema` to support all 18 NDA fields (was 5, now all optional)
-- Added `NDAFieldKey` Literal type for field name validation
-- Added explicit `field_updates: dict[str, str]` to `LegalAnalysisResponse`
-- Implemented `_sanitize_field_updates()` in `ChatService` with:
-  - Allow-list validation (frozenset of 18 valid fields)
-  - Enum constraint validation (mndaTerm, confidentialityTerm)
-  - Type safety for field values
-- Rewrote `_build_system_prompt()` for sequential field-by-field guidance
-- Added 307-line test suite (17 tests) covering all validation logic
-
-**Frontend:**
-- Created `ChatPanel` component (259 lines): message history, API communication, error handling
-- Created `FieldHighlight` component: visual feedback on field updates (1.5s animation)
-- Created `api.ts` utility: `sendChatMessage()`, `getConversationHistory()` functions
-- Implemented 3-panel responsive layout: Chat (left) | Form (center) | Preview (right)
-- Added `NDA_FIELD_LABELS` export for field display names
-- Updated `NDAForm` to accept and display field highlights
-- Added 206-line test suite (9 tests) for API utilities
-
-**Features:**
-- Conversation persistence via localStorage (resume previous conversations)
-- Auto-send initial AI greeting on page load
-- Real-time form field updates from chat with visual highlights
-- Sequential field collection guidance (all 18 fields in order)
-- Backend-authoritative field validation (no client-side regex)
-
-**Status: Merged to main (commit 2deaaa1), Ready for Production**
-- 26 unit tests (17 backend + 9 frontend)
-- Full syntax validation passing
-- Backward compatible (all existing features preserved)
-
 ### 📦 Deployment Status
-- ✅ Code merged to main branch (commit 2deaaa1)
+- ✅ Code merged to main branch
 - ✅ All tests passing (26/26)
-- ✅ Docker builds successfully
+- ✅ Docker builds and runs via `scripts/start-linux.sh`
 - ✅ Production-ready (with known limitations below)
-- ⏳ GitHub PR pending manual creation (auth issue with MCP tool)
 
 ### ⚠️ Known Limitations
-1. Free model (gpt-oss-120b) has limited structured output support → graceful degradation with error messages
+1. Free model (`gpt-oss-120b:free`) occasionally rate-limits → retry resolves; upgrade to paid model via `.env` for reliability
 2. SQLite write serialization → upgrade to PostgreSQL for >100 concurrent writes
 3. Conversation context limited to 20 messages → adequate for current scope, enhance in PL-7
-4. Manual edit mode not yet implemented → users can't manually edit fields while chatting (PL-7)
-5. No rate limiting on API endpoints → add in PL-6 optional or PL-7
+4. Manual edit mode not implemented → users can't directly edit NDA fields, only via chat (PL-7)
+5. No rate limiting on API endpoints → add in PL-7
 
 ### 📝 Future Features
-
-**PL-6 (Complete - Auth & Streaming):**
-- ✅ Backend: User authentication (OAuth with Google)
-- ✅ Backend: JWT token pair (access + refresh) with HttpOnly cookies
-- ✅ Backend: Conversation ownership enforcement (user_id + session_id)
-- ✅ Backend: Anonymous session ownership for unauthenticated users
-- ✅ Backend: SSE message streaming (token-by-token display)
-- ✅ Frontend: AuthContext + auth hooks (useAuth, useSession, useSSEChat)
-- ✅ Frontend: Google Sign-In modal UI (popup with postMessage)
-- ✅ Frontend: SSE streaming integration in ChatPanel (async generator)
-- ✅ Frontend: Token/session header injection (Authorization + X-Session-ID)
-- ✅ Frontend: Error handling for auth and streaming failures
-
-**PL-6 Optional (Deferred to PL-7):**
-- Rate limiting on API endpoints
-- Manual edit mode toggle (chat + form editing simultaneously)
 
 **PL-7+ (Backlog):**
 - Multi-document support (MSA, DPA, etc.)
@@ -222,13 +151,14 @@ cd frontend && npm test -- __tests__/utils/api.test.ts
 
 ### Manual E2E Testing
 ```bash
-cd /home/ivopc/Projects/prelegal
 sudo ./scripts/start-linux.sh
 # Access at http://localhost:8000
-# - Chat interface loads and auto-sends greeting
-# - Typing field values highlights and updates form
-# - Form fields persist through conversation
-# - PDF download works
+# - Chat interface loads and AI sends greeting automatically
+# - AI guides through all 18 NDA fields sequentially, always asking a follow-up
+# - Document Preview (right panel) updates live as fields are collected
+# - Page reload resumes previous conversation from localStorage
+# - PDF download button (header, emerald) generates and downloads NDA
+# - Sign In button supports Google OAuth (popup flow)
 ```
 
 ### Syntax Validation
