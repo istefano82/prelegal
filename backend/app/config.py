@@ -12,12 +12,19 @@ class Settings(BaseSettings):
 
     database_url: str = "sqlite+aiosqlite:///./prelegal.db"
     secret_key: str
-    access_token_expire_minutes: int = 10080
+    access_token_expire_minutes: int = 15
+    refresh_token_expire_days: int = 7
+    anonymous_session_expire_days: int = 30
     litellm_model: str = "openai/gpt-oss-120b:free"
     openrouter_api_key: str
     log_level: str = "INFO"
     cors_origins: str | list[str] = Field(default="http://localhost:3000")
     max_conversation_turns: int = 20
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_redirect_uri: str = "http://localhost:8000/auth/google/callback"
+    frontend_url: str = "http://localhost:8000"
+    cookie_secure: bool = False
 
     @field_validator("cors_origins", mode="before")
     @classmethod

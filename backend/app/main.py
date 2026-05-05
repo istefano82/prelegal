@@ -1,7 +1,7 @@
 import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, FileResponse
@@ -9,7 +9,8 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.database import engine, Base
-from app.routers import chat_router
+from app.routers import chat_router, auth_router
+from app.exceptions import AuthError, OwnershipError
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger(__name__)
@@ -38,7 +39,7 @@ app.add_middleware(
     allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*", "X-Session-ID"],
 )
 
 
@@ -51,11 +52,28 @@ async def validation_exception_handler(request, exc):
     )
 
 
+@app.exception_handler(AuthError)
+async def auth_error_handler(request: Request, exc: AuthError):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": {"code": "UNAUTHORIZED", "message": exc.message}},
+    )
+
+
+@app.exception_handler(OwnershipError)
+async def ownership_error_handler(request: Request, exc: OwnershipError):
+    return JSONResponse(
+        status_code=403,
+        content={"error": {"code": "FORBIDDEN", "message": exc.message}},
+    )
+
+
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}
 
 
+app.include_router(auth_router)
 app.include_router(chat_router)
 
 # Serve static files (Next.js frontend)

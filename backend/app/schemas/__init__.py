@@ -6,6 +6,14 @@ from app.schemas.chat import (
     MessageSchema,
     NDAFieldKey,
 )
+from app.schemas.auth import (
+    UserSchema,
+    TokenPair,
+    TokenPayload,
+    GoogleProfile,
+    GoogleAuthRequest,
+    AuthResponse,
+)
 
 __all__ = [
     "ChatMessageRequest",
@@ -14,4 +22,10 @@ __all__ = [
     "LegalAnalysisResponse",
     "MessageSchema",
     "NDAFieldKey",
+    "UserSchema",
+    "TokenPair",
+    "TokenPayload",
+    "GoogleProfile",
+    "GoogleAuthRequest",
+    "AuthResponse",
 ]

@@ -11,9 +11,16 @@ services:
       - DATABASE_URL=sqlite:///./prelegal.db
       - SECRET_KEY=dev-secret-key-change-in-production
       - LITELLM_MODEL=openai/gpt-oss-120b:free
-      - ACCESS_TOKEN_EXPIRE_MINUTES=10080
+      - ACCESS_TOKEN_EXPIRE_MINUTES=15
+      - REFRESH_TOKEN_EXPIRE_DAYS=7
+      - ANONYMOUS_SESSION_EXPIRE_DAYS=30
       - LOG_LEVEL=INFO
       - CORS_ORIGINS=http://localhost:3000,http://localhost:8000
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
+      - FRONTEND_URL=http://localhost:8000
+      - COOKIE_SECURE=false
     volumes:
       - ./backend:/app/backend
     working_dir: /app/backend

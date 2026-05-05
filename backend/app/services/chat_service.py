@@ -4,12 +4,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from litellm import acompletion
 from pydantic import ValidationError
+from dataclasses import dataclass
 
 from app.models import Conversation, Message
 from app.schemas import LegalAnalysisResponse, NDAContextSchema
 from app.config import settings
+from app.exceptions import OwnershipError
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class ConversationOwner:
+    """Represents the owner of a conversation (either a user or anonymous session)."""
+    user_id: str | None
+    session_id: str | None
 
 _VALID_NDA_FIELDS: frozenset[str] = frozenset({
     "purpose", "effectiveDate", "mndaTerm", "confidentialityTerm",
@@ -33,11 +42,12 @@ class ChatService:
 
     async def process_message(
         self,
+        owner: "ConversationOwner",
         conversation_id: str | None,
         user_message: str,
         document_context: NDAContextSchema | None,
     ) -> tuple[Conversation, Message, LegalAnalysisResponse]:
-        conversation = await self._get_or_create_conversation(conversation_id, document_context)
+        conversation = await self._get_or_create_conversation(owner, conversation_id, document_context)
         history = await self._build_message_history(conversation.id)
         analysis = await self._call_llm(user_message, history, document_context)
 
@@ -46,7 +56,7 @@ class ChatService:
 
         return conversation, assistant_msg, analysis
 
-    async def get_history(self, conversation_id: str) -> list[Message] | None:
+    async def get_history(self, owner: "ConversationOwner", conversation_id: str) -> list[Message] | None:
         stmt = select(Conversation).where(Conversation.id == conversation_id)
         result = await self.db.execute(stmt)
         conversation = result.scalar_one_or_none()
@@ -54,16 +64,34 @@ class ChatService:
         if not conversation:
             return None
 
+        # Enforce ownership
+        if owner.user_id:
+            if conversation.user_id != owner.user_id:
+                raise OwnershipError("You do not have access to this conversation")
+        else:
+            if conversation.session_id != owner.session_id:
+                raise OwnershipError("You do not have access to this conversation")
+
         return conversation.messages
 
     async def _get_or_create_conversation(
-        self, conversation_id: str | None, document_context: NDAContextSchema | None
+        self,
+        owner: "ConversationOwner",
+        conversation_id: str | None,
+        document_context: NDAContextSchema | None,
     ) -> Conversation:
         if conversation_id:
             stmt = select(Conversation).where(Conversation.id == conversation_id)
             result = await self.db.execute(stmt)
             conversation = result.scalar_one_or_none()
             if conversation:
+                # Enforce ownership on existing conversation
+                if owner.user_id:
+                    if conversation.user_id != owner.user_id:
+                        raise OwnershipError("You do not have access to this conversation")
+                else:
+                    if conversation.session_id != owner.session_id:
+                        raise OwnershipError("You do not have access to this conversation")
                 return conversation
             logger.warning(f"Conversation {conversation_id} not found, creating new conversation")
 
@@ -71,7 +99,11 @@ class ChatService:
         if document_context:
             context_str = document_context.model_dump_json()
 
-        conversation = Conversation(document_context=context_str)
+        conversation = Conversation(
+            user_id=owner.user_id,
+            session_id=owner.session_id,
+            document_context=context_str,
+        )
         self.db.add(conversation)
         await self.db.flush()
         return conversation
