@@ -5,14 +5,15 @@ services:
     build: .
     ports:
       - "8000:8000"
+    env_file:
+      - backend/.env
     environment:
       - DATABASE_URL=sqlite:///./prelegal.db
       - SECRET_KEY=dev-secret-key-change-in-production
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
-      - LITELLM_MODEL=openrouter/anthropic/claude-3-5-sonnet
+      - LITELLM_MODEL=openai/gpt-oss-120b:free
       - ACCESS_TOKEN_EXPIRE_MINUTES=10080
       - LOG_LEVEL=INFO
-      - CORS_ORIGINS=http://localhost:3000,http://localhost:8000,http://localhost
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:8000
     volumes:
       - ./backend:/app/backend
     working_dir: /app/backend

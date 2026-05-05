@@ -40,7 +40,7 @@ WORKDIR /app/backend
 ENV DATABASE_URL=sqlite:///./prelegal.db
 ENV SECRET_KEY=change-me-in-production
 ENV OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
-ENV LITELLM_MODEL=openrouter/anthropic/claude-3-5-sonnet
+ENV LITELLM_MODEL=openai/gpt-oss-120b:free
 ENV ACCESS_TOKEN_EXPIRE_MINUTES=10080
 ENV LOG_LEVEL=INFO
 ENV CORS_ORIGINS=http://localhost:3000,http://localhost

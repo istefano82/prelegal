@@ -48,7 +48,7 @@ export function PDFDownloadButton({ data }: PDFDownloadButtonProps) {
         filename: filename,
         image: { type: "jpeg" as const, quality: 0.98 },
         html2canvas: { scale: 2 },
-        jsPDF: { orientation: "portrait", unit: "mm", format: "a4" },
+        jsPDF: { orientation: "portrait" as const, unit: "mm", format: "a4" },
       };
 
       // Await the PDF generation and save
