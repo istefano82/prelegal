@@ -85,6 +85,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
 export interface AuthContextType {
   state: AuthState;
   login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, name?: string) => Promise<void>;
   googleLogin: (code: string) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
@@ -167,6 +168,46 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, []);
 
+  const register = useCallback(
+    async (email: string, password: string, name?: string) => {
+      dispatch({ type: "LOGIN_START" });
+      try {
+        const response = await fetch("/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ email, password, name }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(
+            error.error?.message || "Registration failed"
+          );
+        }
+
+        const { user } = await response.json();
+        const sessionId = localStorage.getItem("sessionId") || "";
+        dispatch({
+          type: "LOGIN_SUCCESS",
+          payload: { user, sessionId },
+        });
+      } catch (error) {
+        dispatch({
+          type: "LOGIN_ERROR",
+          payload: {
+            error:
+              error instanceof Error
+                ? error.message
+                : "Registration failed",
+          },
+        });
+        throw error;
+      }
+    },
+    []
+  );
+
   const googleLogin = useCallback(async (code: string) => {
     dispatch({ type: "LOGIN_START" });
     try {
@@ -217,6 +258,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const value: AuthContextType = {
     state,
     login,
+    register,
     googleLogin,
     logout,
     clearError,
