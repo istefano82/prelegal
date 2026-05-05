@@ -65,6 +65,7 @@ export function ChatPanel({
           let newConversationId = "";
           let messageId = "";
           let extractedUpdates: Partial<NDAFormData> = {};
+          let answerText = "";
 
           const stream = streamChatMessage(
             "Hello, I'm ready to create my NDA.",
@@ -78,6 +79,7 @@ export function ChatPanel({
               fullContent += event.data.text;
             } else if (event.event === "field_updates") {
               extractedUpdates = (event.data.field_updates as Partial<NDAFormData>) || {};
+              answerText = String(event.data.answer || "");
             } else if (event.event === "done") {
               newConversationId = String(event.data.conversation_id || "");
               messageId = String(event.data.message_id || "");
@@ -94,7 +96,7 @@ export function ChatPanel({
               {
                 id: messageId,
                 role: "assistant",
-                content: fullContent,
+                content: answerText,
                 extractedFields: extractedUpdates,
               },
             ];
@@ -179,6 +181,7 @@ export function ChatPanel({
       let fullContent = "";
       let extractedUpdates: Partial<NDAFormData> = {};
       let messageId = "";
+      let answerText = "";
 
       const stream = streamChatMessage(
         userMessage,
@@ -192,6 +195,7 @@ export function ChatPanel({
           fullContent += event.data.text;
         } else if (event.event === "field_updates") {
           extractedUpdates = (event.data.field_updates as Partial<NDAFormData>) || {};
+          answerText = String(event.data.answer || "");
         } else if (event.event === "done") {
           messageId = String(event.data.message_id || "");
         } else if (event.event === "error") {
@@ -202,9 +206,9 @@ export function ChatPanel({
       const assistantChatMessage: ChatMessage = {
         id: messageId || `assistant-${Date.now()}`,
         role: "assistant",
-        content: fullContent,
+        content: answerText,
         extractedFields: extractedUpdates,
-        error: fullContent.includes("Unable to parse"),
+        error: answerText.includes("Unable to parse"),
       };
 
       setMessages((prev) => [...prev, userChatMessage, assistantChatMessage]);
