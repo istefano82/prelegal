@@ -215,6 +215,9 @@ export function ChatPanel({
         content: userMessage,
       };
 
+      // Show user message immediately
+      setMessages((prev) => [...prev, userChatMessage]);
+
       let fullContent = "";
       let extractedUpdates: Partial<NDAFormData> = {};
       let messageId = "";
@@ -248,7 +251,7 @@ export function ChatPanel({
         error: answerText.includes("Unable to parse"),
       };
 
-      setMessages((prev) => [...prev, userChatMessage, assistantChatMessage]);
+      setMessages((prev) => [...prev, assistantChatMessage]);
 
       if (Object.keys(extractedUpdates).length > 0) {
         onFieldUpdates(extractedUpdates);
@@ -259,6 +262,7 @@ export function ChatPanel({
       setError(errorMsg);
       console.error("Chat error:", err);
 
+      // User message already shown — only append the error reply
       setMessages((prev) => [
         ...prev,
         {
