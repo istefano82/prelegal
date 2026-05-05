@@ -1,8 +1,11 @@
 #!/bin/bash
-set -e
 
-echo "🛑 Stopping PreLegal..."
+CONTAINER_NAME="prelegal_app"
 
-docker-compose down
-
-echo "✅ PreLegal stopped successfully"
+if docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+    echo "Stopping PreLegal..."
+    docker rm -f "$CONTAINER_NAME" > /dev/null
+    echo "PreLegal stopped."
+else
+    echo "PreLegal is not running."
+fi
