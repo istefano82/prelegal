@@ -323,16 +323,5 @@ export function ChatPanel({
 }
 
 async function getAccessToken(): Promise<string> {
-  try {
-    const response = await fetch("/auth/me", {
-      credentials: "include",
-    });
-    if (response.ok) {
-      const data = await response.json();
-      return data.access_token || "";
-    }
-  } catch {
-    // Fall through to return empty string
-  }
   return "";
 }
