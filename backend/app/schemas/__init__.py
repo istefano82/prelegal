@@ -16,6 +16,13 @@ from app.schemas.auth import (
     RegisterRequest,
     LoginRequest,
 )
+from app.schemas.document import (
+    NdaSnapshotSchema,
+    DocumentListResponse,
+    SaveSnapshotRequest,
+    RenameDocumentRequest,
+    UpdateTagsRequest,
+)
 
 __all__ = [
     "ChatMessageRequest",
@@ -32,4 +39,9 @@ __all__ = [
     "AuthResponse",
     "RegisterRequest",
     "LoginRequest",
+    "NdaSnapshotSchema",
+    "DocumentListResponse",
+    "SaveSnapshotRequest",
+    "RenameDocumentRequest",
+    "UpdateTagsRequest",
 ]

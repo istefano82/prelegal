@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.database import engine, Base
-from app.routers import chat_router, auth_router
+from app.routers import chat_router, auth_router, documents_router
 from app.exceptions import AuthError, OwnershipError, ValidationError, NotFoundError
 
 logging.basicConfig(level=settings.log_level)
@@ -91,6 +91,7 @@ async def health_check():
 
 app.include_router(auth_router)
 app.include_router(chat_router)
+app.include_router(documents_router)
 
 # Serve static files (Next.js frontend)
 static_dir = Path(__file__).parent.parent / "static"

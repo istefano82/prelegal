@@ -24,6 +24,12 @@ class User(Base):
         lazy="selectin",
         foreign_keys="Conversation.user_id",
     )
+    snapshots: Mapped[list["NdaSnapshot"]] = relationship(
+        back_populates="owner",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+        foreign_keys="NdaSnapshot.user_id",
+    )
 
     def __repr__(self) -> str:
         return f"<User(id={self.id}, email={self.email})>"

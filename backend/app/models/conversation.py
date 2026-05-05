@@ -11,6 +11,8 @@ class Conversation(Base):
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid4()))
     user_id: Mapped[str | None] = mapped_column(String, ForeignKey("users.id"), nullable=True, index=True)
     session_id: Mapped[str | None] = mapped_column(String, ForeignKey("anonymous_sessions.id"), nullable=True, index=True)
+    title: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    tags: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     document_context: Mapped[str | None] = mapped_column(Text, nullable=True)
     messages: Mapped[list["Message"]] = relationship(
@@ -18,6 +20,11 @@ class Conversation(Base):
         cascade="all, delete-orphan",
         lazy="selectin",
         order_by="Message.created_at.asc()",
+    )
+    snapshots: Mapped[list["NdaSnapshot"]] = relationship(
+        back_populates="conversation",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )
     owner: Mapped["User"] = relationship(back_populates="conversations", foreign_keys=[user_id])
     session: Mapped["AnonymousSession"] = relationship(back_populates="conversations", foreign_keys=[session_id])
