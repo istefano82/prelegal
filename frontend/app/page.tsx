@@ -6,6 +6,7 @@ import { NDAForm } from "@/components/NDAForm";
 import { NDAPreview } from "@/components/NDAPreview";
 import { PDFDownloadButton } from "@/components/PDFDownloadButton";
 import { ChatPanel } from "@/components/ChatPanel";
+import { AuthButton } from "@/components/AuthButton";
 
 const initialFormData: NDAFormData = {
   purpose: "",
@@ -59,9 +60,12 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-7xl mx-auto h-screen flex flex-col">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Mutual NDA Creator</h1>
-          <p className="text-lg text-gray-600">Create a professional Mutual Non-Disclosure Agreement with AI guidance</p>
+        <div className="mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">Mutual NDA Creator</h1>
+            <p className="text-lg text-gray-600">Create a professional Mutual Non-Disclosure Agreement with AI guidance</p>
+          </div>
+          <AuthButton />
         </div>
 
         {/* Main Content - 3 Panel Layout */}

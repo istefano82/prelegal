@@ -8,8 +8,12 @@ RUN npm ci
 
 COPY frontend/ ./
 
-# Add output: 'export' to next.config
-RUN echo "const nextConfig = { output: 'export' }; module.exports = nextConfig;" > next.config.js
+# Build frontend with environment variables
+ARG NEXT_PUBLIC_API_URL=http://localhost:8000
+ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID=
+
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=$NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
 RUN npm run build
 

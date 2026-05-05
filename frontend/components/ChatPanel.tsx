@@ -2,11 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { NDAFormData } from "@/utils/nda";
-import {
-  sendChatMessage,
-  ChatAnalysis,
-  NDAContextPayload,
-} from "@/utils/api";
+import { NDAContextPayload, streamChatMessage } from "@/utils/api";
+import { useSession } from "@/hooks/useSession";
 
 interface ChatMessage {
   id: string;
@@ -34,6 +31,7 @@ export function ChatPanel({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { sessionId, isAuthenticated, user } = useSession();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -44,37 +42,77 @@ export function ChatPanel({
   }, [messages]);
 
   useEffect(() => {
-    if (!conversationId && messages.length === 0) {
+    if (!conversationId && messages.length === 0 && sessionId) {
       const sendInitialGreeting = async () => {
         setIsLoading(true);
         try {
           const contextPayload = formDataToContext(formData);
-          const response = await sendChatMessage(
-            "Hello, I'm ready to create my NDA.",
-            null,
-            contextPayload
-          );
 
-          onConversationStart(response.conversation_id);
-          localStorage.setItem("conversationId", response.conversation_id);
+          const headers: Record<string, string> = {
+            "Content-Type": "application/json",
+          };
 
-          const newMessages: ChatMessage[] = [
-            {
-              id: response.message_id,
-              role: "assistant",
-              content: response.analysis.answer,
-              extractedFields: extractFieldUpdates(response.analysis),
-            },
-          ];
-
-          if (response.analysis.field_updates && Object.keys(response.analysis.field_updates).length > 0) {
-            onFieldUpdates(response.analysis.field_updates as Partial<NDAFormData>);
+          if (isAuthenticated && user?.id) {
+            const token = await getAccessToken();
+            if (token) {
+              headers["Authorization"] = `Bearer ${token}`;
+            }
+          } else if (sessionId) {
+            headers["X-Session-ID"] = sessionId;
           }
 
-          setMessages(newMessages);
+          let fullContent = "";
+          let newConversationId = "";
+          let messageId = "";
+          let extractedUpdates: Partial<NDAFormData> = {};
+
+          const stream = streamChatMessage(
+            "Hello, I'm ready to create my NDA.",
+            null,
+            contextPayload,
+            headers
+          );
+
+          for await (const event of stream) {
+            if (event.event === "token" && typeof event.data.text === "string") {
+              fullContent += event.data.text;
+            } else if (event.event === "field_updates") {
+              extractedUpdates = (event.data.field_updates as Partial<NDAFormData>) || {};
+            } else if (event.event === "done") {
+              newConversationId = String(event.data.conversation_id || "");
+              messageId = String(event.data.message_id || "");
+            } else if (event.event === "error") {
+              throw new Error(String(event.data.message || "Stream error"));
+            }
+          }
+
+          if (newConversationId && messageId) {
+            onConversationStart(newConversationId);
+            localStorage.setItem("conversationId", newConversationId);
+
+            const newMessages: ChatMessage[] = [
+              {
+                id: messageId,
+                role: "assistant",
+                content: fullContent,
+                extractedFields: extractedUpdates,
+              },
+            ];
+
+            setMessages(newMessages);
+
+            if (Object.keys(extractedUpdates).length > 0) {
+              onFieldUpdates(extractedUpdates);
+            }
+          }
+
           setError(null);
         } catch (err) {
-          setError("Failed to start conversation. Please refresh and try again.");
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Failed to start conversation. Please refresh and try again."
+          );
           console.error("Initial greeting error:", err);
         } finally {
           setIsLoading(false);
@@ -83,7 +121,7 @@ export function ChatPanel({
 
       sendInitialGreeting();
     }
-  }, []);
+  }, [conversationId, messages.length, sessionId, isAuthenticated, user?.id, formData, onConversationStart, onFieldUpdates]);
 
   const formDataToContext = (data: NDAFormData): NDAContextPayload => {
     return {
@@ -108,12 +146,8 @@ export function ChatPanel({
     };
   };
 
-  const extractFieldUpdates = (analysis: ChatAnalysis): Partial<NDAFormData> => {
-    return analysis.field_updates as Partial<NDAFormData>;
-  };
-
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || !conversationId) return;
+    if (!inputValue.trim() || !conversationId || !sessionId) return;
 
     const userMessage = inputValue.trim();
     setInputValue("");
@@ -122,11 +156,19 @@ export function ChatPanel({
 
     try {
       const contextPayload = formDataToContext(formData);
-      const response = await sendChatMessage(
-        userMessage,
-        conversationId,
-        contextPayload
-      );
+
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+
+      if (isAuthenticated && user?.id) {
+        const token = await getAccessToken();
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+      } else {
+        headers["X-Session-ID"] = sessionId;
+      }
 
       const userChatMessage: ChatMessage = {
         id: `user-${Date.now()}`,
@@ -134,13 +176,35 @@ export function ChatPanel({
         content: userMessage,
       };
 
-      const extractedUpdates = extractFieldUpdates(response.analysis);
+      let fullContent = "";
+      let extractedUpdates: Partial<NDAFormData> = {};
+      let messageId = "";
+
+      const stream = streamChatMessage(
+        userMessage,
+        conversationId,
+        contextPayload,
+        headers
+      );
+
+      for await (const event of stream) {
+        if (event.event === "token" && typeof event.data.text === "string") {
+          fullContent += event.data.text;
+        } else if (event.event === "field_updates") {
+          extractedUpdates = (event.data.field_updates as Partial<NDAFormData>) || {};
+        } else if (event.event === "done") {
+          messageId = String(event.data.message_id || "");
+        } else if (event.event === "error") {
+          throw new Error(String(event.data.message || "Stream error"));
+        }
+      }
+
       const assistantChatMessage: ChatMessage = {
-        id: response.message_id,
+        id: messageId || `assistant-${Date.now()}`,
         role: "assistant",
-        content: response.analysis.answer,
+        content: fullContent,
         extractedFields: extractedUpdates,
-        error: response.analysis.answer.includes("Unable to parse"),
+        error: fullContent.includes("Unable to parse"),
       };
 
       setMessages((prev) => [...prev, userChatMessage, assistantChatMessage]);
@@ -256,4 +320,19 @@ export function ChatPanel({
       </div>
     </div>
   );
+}
+
+async function getAccessToken(): Promise<string> {
+  try {
+    const response = await fetch("/auth/me", {
+      credentials: "include",
+    });
+    if (response.ok) {
+      const data = await response.json();
+      return data.access_token || "";
+    }
+  } catch {
+    // Fall through to return empty string
+  }
+  return "";
 }
