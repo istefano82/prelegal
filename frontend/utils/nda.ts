@@ -55,6 +55,8 @@ export function generateNDADocument(data: NDAFormData): string {
 
   const rawDocument = `# Mutual Non-Disclosure Agreement
 
+> ⚠️ **Draft Document** – This document should be reviewed by legal counsel before use.
+
 ## COVER PAGE
 
 ### Purpose

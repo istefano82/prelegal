@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from app.models import NdaSnapshot, Conversation
 from app.schemas import NDAContextSchema
 from app.exceptions import NotFoundError, OwnershipError
-from app.dependencies import ConversationOwner
+from app.types import ConversationOwner
 
 
 class DocumentService:

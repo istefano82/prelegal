@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_db, get_conversation_owner, ConversationOwner
+from app.dependencies import get_db, get_conversation_owner
+from app.types import ConversationOwner
 from app.services import DocumentService
 from app.schemas import (
     NdaSnapshotSchema,

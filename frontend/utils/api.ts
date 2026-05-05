@@ -180,3 +180,89 @@ export async function* streamChatMessage(
     }
   }
 }
+
+export interface NdaSnapshot {
+  id: string;
+  conversation_id: string;
+  title: string;
+  tags: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DocumentListResponse {
+  documents: NdaSnapshot[];
+  total: number;
+}
+
+export async function listDocuments(): Promise<NdaSnapshot[]> {
+  const response = await fetch(`${BASE_URL}/documents/`, {
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to list documents: ${response.statusText}`);
+  }
+
+  const data: DocumentListResponse = await response.json();
+  return data.documents;
+}
+
+export async function getDocument(snapshotId: string): Promise<NdaSnapshot> {
+  const response = await fetch(`${BASE_URL}/documents/${snapshotId}`, {
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to get document: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function renameDocument(
+  snapshotId: string,
+  title: string
+): Promise<NdaSnapshot> {
+  const response = await fetch(`${BASE_URL}/documents/${snapshotId}/rename`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ title }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to rename document: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function updateTags(
+  snapshotId: string,
+  tags: string[]
+): Promise<NdaSnapshot> {
+  const response = await fetch(`${BASE_URL}/documents/${snapshotId}/tags`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ tags }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to update tags: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function deleteDocument(snapshotId: string): Promise<void> {
+  const response = await fetch(`${BASE_URL}/documents/${snapshotId}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to delete document: ${response.statusText}`);
+  }
+}

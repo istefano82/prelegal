@@ -1,11 +1,11 @@
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends, Request, HTTPException
-from dataclasses import dataclass
 from app.database import AsyncSessionLocal
 from app.services import AuthService
 from app.models import User
 from app.exceptions import AuthError
+from app.types import ConversationOwner
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
@@ -49,14 +49,6 @@ async def require_user(
     if user is None:
         raise HTTPException(status_code=401, detail="Authentication required")
     return user
-
-
-@dataclass
-class ConversationOwner:
-    """Represents the owner of a conversation (either a user or anonymous session)."""
-
-    user_id: str | None
-    session_id: str | None
 
 
 async def get_conversation_owner(

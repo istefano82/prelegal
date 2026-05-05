@@ -5,7 +5,8 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 import litellm
 
-from app.dependencies import get_db, get_conversation_owner, ConversationOwner
+from app.dependencies import get_db, get_conversation_owner
+from app.types import ConversationOwner
 from app.services import ChatService, StreamService
 from app.schemas import (
     ChatMessageRequest,

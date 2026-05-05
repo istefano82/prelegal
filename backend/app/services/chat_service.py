@@ -4,21 +4,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from litellm import acompletion
 from pydantic import ValidationError
-from dataclasses import dataclass
 
 from app.models import Conversation, Message
 from app.schemas import LegalAnalysisResponse, NDAContextSchema
 from app.config import settings
 from app.exceptions import OwnershipError
+from app.types import ConversationOwner
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class ConversationOwner:
-    """Represents the owner of a conversation (either a user or anonymous session)."""
-    user_id: str | None
-    session_id: str | None
 
 _VALID_NDA_FIELDS: frozenset[str] = frozenset({
     "purpose", "effectiveDate", "mndaTerm", "confidentialityTerm",
