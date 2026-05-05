@@ -37,6 +37,19 @@ PreLegal is an AI-powered legal document assistant that helps create and manage 
 - **Error Handling**: User-facing error messages for parse failures
 - **Initial Greeting**: Auto-send AI greeting on page load to start conversation
 
+### ✅ Completed (PL-6)
+- **User Authentication**: OAuth with Google via backend-driven OAuth flow
+- **JWT Token Pair**: Access (15min) and refresh (7day) tokens with HttpOnly cookies
+- **Conversation Ownership**: User conversations isolated by user_id or session_id
+- **Anonymous Sessions**: 30-day TTL sessions for unauthenticated users with automatic migration
+- **SSE Streaming**: Real-time message responses via Server-Sent Events with field_updates
+- **Auth Context**: React Context + useReducer state machine (loading, unauthenticated, authenticated)
+- **Auth Hooks**: useAuth, useSession, useSSEChat for component integration
+- **Auth UI**: AuthModal (Google Sign-In), UserMenu (user profile + logout), AuthButton (toggle)
+- **Session Headers**: X-Session-ID for guests, Authorization Bearer for authenticated users
+- **OAuth Callback**: Popup-based flow with postMessage signaling
+- **StreamingResponse**: Frontend async generator consuming SSE events with field_updates parsing
+
 ### 🔄 Configuration
 - Model: `openrouter/anthropic/claude-3-5-sonnet` (default, configurable via .env)
 - Free tier option: `openrouter/openai/gpt-oss-120b:free`
@@ -78,9 +91,11 @@ uvicorn app.main:app --reload
 - ✅ CORS middleware
 - ✅ Exception handling without data leakage
 - ✅ Backend-authoritative field validation (allow-list + enum constraints)
-- ⏳ User authentication (PL-6)
-- ⏳ Conversation ownership enforcement (PL-6)
-- ⏳ Rate limiting (PL-6)
+- ✅ User authentication (OAuth 2.0 with Google)
+- ✅ Conversation ownership enforcement (user_id + session_id)
+- ✅ JWT token verification with HS256 signing
+- ✅ HttpOnly secure cookies for token storage
+- ⏳ Rate limiting (PL-6 optional)
 
 ### 📊 Database Schema
 - `conversations` - conversation metadata, timestamps, ownership (user_id, session_id)
@@ -104,15 +119,17 @@ uvicorn app.main:app --reload
 - ✅ Added httpx to runtime dependencies for Google OAuth token exchange
 - ✅ Updated docker-compose with Google OAuth and token expiry settings
 
-**Frontend - Pending (Sessions 5-8):**
-- ⏳ AuthContext + useReducer for auth state machine
-- ⏳ useAuth, useSession, useSSEChat custom hooks
-- ⏳ AuthModal component with Google Sign-In button
-- ⏳ UserMenu component for authenticated user profile
-- ⏳ AuthButton toggle (login / user menu)
-- ⏳ Session-based ownership for unauthenticated users
-- ⏳ SSE streaming in ChatPanel via fetch ReadableStream
-- ⏳ Token/session ID header injection (credentials: include, X-Session-ID)
+**Frontend - Complete (Session 4 - PL-6):**
+- ✅ AuthContext + useReducer for auth state machine (loading/unauthenticated/authenticated)
+- ✅ useAuth, useSession, useSSEChat custom hooks for component integration
+- ✅ AuthModal component with Google OAuth popup and success signaling
+- ✅ UserMenu component for authenticated user profile and logout
+- ✅ AuthButton toggle (Sign In / User Menu)
+- ✅ Session-based ownership for unauthenticated users (sessionId in localStorage)
+- ✅ SSE streaming in ChatPanel via async generator and fetch ReadableStream
+- ✅ Token/session ID header injection (Authorization Bearer + X-Session-ID)
+- ✅ OAuth callback handler (app/auth/callback/page.tsx) with postMessage integration
+- ✅ streamChatMessage() utility function for consuming SSE events
 
 ### 🔄 Recent Changes (Session 3 - PL-5 Complete)
 
@@ -158,25 +175,26 @@ uvicorn app.main:app --reload
 ### ⚠️ Known Limitations
 1. Free model (gpt-oss-120b) has limited structured output support → graceful degradation with error messages
 2. SQLite write serialization → upgrade to PostgreSQL for >100 concurrent writes
-3. Conversation context limited to 20 messages → adequate for current scope, enhance in PL-6
-4. No user authentication → conversation ownership not enforced (PL-6)
-5. No message streaming → responses display after complete LLM call (WebSocket/SSE in PL-6)
+3. Conversation context limited to 20 messages → adequate for current scope, enhance in PL-7
+4. Manual edit mode not yet implemented → users can't manually edit fields while chatting (PL-7)
+5. No rate limiting on API endpoints → add in PL-6 optional or PL-7
 
 ### 📝 Future Features
 
-**PL-6 (In Progress - Backend Complete, Frontend Pending):**
-- ✅ Backend: User authentication (OAuth with Google via Google Identity Services)
+**PL-6 (Complete - Auth & Streaming):**
+- ✅ Backend: User authentication (OAuth with Google)
 - ✅ Backend: JWT token pair (access + refresh) with HttpOnly cookies
 - ✅ Backend: Conversation ownership enforcement (user_id + session_id)
 - ✅ Backend: Anonymous session ownership for unauthenticated users
 - ✅ Backend: SSE message streaming (token-by-token display)
-- ⏳ Frontend: AuthContext + auth hooks (useAuth, useSession, useSSEChat)
-- ⏳ Frontend: Google Sign-In modal UI
-- ⏳ Frontend: SSE streaming integration in ChatPanel
-- ⏳ Frontend: Token/session header injection on API calls
-- ⏳ Frontend: Error messages for auth failures (401, 403)
+- ✅ Frontend: AuthContext + auth hooks (useAuth, useSession, useSSEChat)
+- ✅ Frontend: Google Sign-In modal UI (popup with postMessage)
+- ✅ Frontend: SSE streaming integration in ChatPanel (async generator)
+- ✅ Frontend: Token/session header injection (Authorization + X-Session-ID)
+- ✅ Frontend: Error handling for auth and streaming failures
 
 **PL-6 Optional (Deferred to PL-7):**
+- Rate limiting on API endpoints
 - Manual edit mode toggle (chat + form editing simultaneously)
 
 **PL-7+ (Backlog):**
@@ -188,6 +206,8 @@ uvicorn app.main:app --reload
 - Template library
 - PostgreSQL migration for production scale
 - Comprehensive integration test coverage
+- Rate limiting with sliding window
+- Webhook support for external integrations
 
 ## Testing & Verification
 
