@@ -93,6 +93,13 @@ app.include_router(auth_router)
 app.include_router(chat_router)
 app.include_router(documents_router)
 
+
+@app.get("/my-documents", include_in_schema=False)
+async def serve_my_documents():
+    static_dir = Path(__file__).parent.parent / "static"
+    return FileResponse(static_dir / "my-documents.html")
+
+
 # Serve static files (Next.js frontend)
 static_dir = Path(__file__).parent.parent / "static"
 if static_dir.exists():

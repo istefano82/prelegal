@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, Query
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,6 +12,7 @@ from app.schemas import UserSchema, TokenPair, AuthResponse, RegisterRequest, Lo
 from app.config import settings
 from app.exceptions import AuthError, ValidationError, WeakPasswordError
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
@@ -184,6 +186,7 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
             detail={"code": "VALIDATION_ERROR", "message": e.message, "field": e.field},
         )
     except Exception as e:
+        logger.error(f"Registration error: {type(e).__name__}: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail={"code": "REGISTRATION_ERROR", "message": "Registration failed"},

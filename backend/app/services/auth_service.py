@@ -234,6 +234,8 @@ class AuthService:
         """
         if len(password) < 8:
             raise WeakPasswordError("Password must be at least 8 characters")
+        if len(password.encode('utf-8')) > 72:
+            raise WeakPasswordError("Password is too long (max 72 bytes)")
         if not any(c.isupper() for c in password):
             raise WeakPasswordError("Password must contain an uppercase letter")
         if not any(c.isdigit() for c in password):
@@ -268,6 +270,9 @@ class AuthService:
             raise ValidationError("Email already registered", field="email")
 
         # Hash password and create user
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"Hashing password: len={len(password)}, bytes={len(password.encode('utf-8'))}")
         password_hash = pwd_context.hash(password)
         user = User(
             id=str(uuid4()),

@@ -8,7 +8,7 @@ export function Navbar() {
   const pathname = usePathname();
 
   const isHome = pathname === "/";
-  const isDocuments = pathname === "/documents";
+  const isDocuments = pathname === "/my-documents";
 
   return (
     <nav className="bg-white border-b border-gray-200">
@@ -34,7 +34,7 @@ export function Navbar() {
             New NDA
           </button>
           <button
-            onClick={() => router.push("/documents")}
+            onClick={() => router.push("/my-documents")}
             className={`font-medium transition-colors ${
               isDocuments
                 ? "text-blue-600 border-b-2 border-blue-600"
