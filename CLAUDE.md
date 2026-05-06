@@ -53,6 +53,23 @@ PreLegal is an AI-powered legal document assistant that helps create and manage 
 - **Ownership Fix**: AnonymousSession correctly persists frontend session ID (no new UUID per request)
 - **AI Follow-on Questions**: System prompt enforces AI always asks next question after each answer
 
+### ✅ Completed (PL-7)
+- **Email/Password Authentication**: Complete sign-up and login with email + password
+- **Password Hashing**: bcrypt password hashing with passlib integration (version-pinned: bcrypt >=4.0.0,<5.0.0)
+- **Password Strength Validation**: Enforced requirements: 8+ chars, uppercase, digit, special char, max 72 bytes (bcrypt limit)
+- **User Registration Endpoint**: `POST /auth/register` with validation and error logging
+- **User Login Endpoint**: `POST /auth/login` with credential verification
+- **Token Refresh Endpoint**: `POST /auth/refresh` with refresh token cookie support
+- **AuthModal Redesign**: Tab-based modal with separate Sign In and Create Account flows
+- **Password Requirements Display**: Real-time validation feedback with checkmark indicators
+- **User Profile Display**: Shows authenticated user name and avatar in navbar (initial avatar)
+- **Multi-user Conversations**: Each user's conversations isolated from others
+- **Navbar Navigation**: Enhanced with PreLegal branding and "New NDA" / "My Documents" links
+- **My Documents Page**: Dedicated page at `/my-documents` for viewing and managing saved documents
+- **Route Resolution**: Fixed routing conflict between API endpoint and frontend page
+- **Draft Disclaimer**: Warning message visible on all document previews
+- **Error Handling**: Comprehensive error logging and user-facing error messages
+
 ### 🔄 Configuration
 - Model: `openrouter/openai/gpt-oss-120b:free` (default, configurable via .env)
 - Alternative paid option: `openrouter/anthropic/claude-3-5-sonnet`
@@ -93,17 +110,20 @@ uvicorn app.main:app --reload
 Scripts use `docker build -t prelegal_app <project_dir>` + `docker run -d -p 8000:8000 --env-file backend/.env --name prelegal_app prelegal_app`. No docker-compose required.
 
 ### 🔐 Security
-- ✅ Input validation via Pydantic
+- ✅ Input validation via Pydantic with EmailStr validation
 - ✅ Prompt injection protection (sanitized context)
 - ✅ Type-safe path parameters (UUID validation)
 - ✅ CORS middleware
 - ✅ Exception handling without data leakage
 - ✅ Backend-authoritative field validation (allow-list + enum constraints)
-- ✅ User authentication (OAuth 2.0 with Google)
+- ✅ User authentication (OAuth 2.0 with Google + email/password)
+- ✅ Password hashing with bcrypt (PBKDF2 alternative available)
+- ✅ Password strength requirements enforced (8+ chars, uppercase, digit, special, max 72 bytes)
 - ✅ Conversation ownership enforcement (user_id + session_id)
 - ✅ JWT token verification with HS256 signing
 - ✅ HttpOnly secure cookies for token storage
-- ⏳ Rate limiting (PL-6 optional)
+- ✅ Refresh token rotation support
+- ⏳ Rate limiting on authentication endpoints (future)
 
 ### 📊 Database Schema
 - `conversations` - conversation metadata, timestamps, ownership (user_id, session_id)
@@ -112,21 +132,25 @@ Scripts use `docker build -t prelegal_app <project_dir>` + `docker run -d -p 800
 - `anonymous_sessions` - guest session ownership with expiry and migration tracking
 
 ### 📦 Deployment Status
-- ✅ Code merged to main branch
-- ✅ All tests passing (26/26)
+- ✅ Code merged to main branch (commit ba5c68b)
 - ✅ Docker builds and runs via `scripts/start-linux.sh`
-- ✅ Production-ready (with known limitations below)
+- ✅ Production-ready for PL-7 scope (with known limitations below)
+- ✅ Email/password authentication tested and working
+- ✅ Multi-user support with conversation ownership isolation
 
 ### ⚠️ Known Limitations
 1. Free model (`gpt-oss-120b:free`) occasionally rate-limits → retry resolves; upgrade to paid model via `.env` for reliability
 2. SQLite write serialization → upgrade to PostgreSQL for >100 concurrent writes
-3. Conversation context limited to 20 messages → adequate for current scope, enhance in PL-7
-4. Manual edit mode not implemented → users can't directly edit NDA fields, only via chat (PL-7)
-5. No rate limiting on API endpoints → add in PL-7
+3. Conversation context limited to 20 messages → adequate for current scope, enhance in future releases
+4. Manual edit mode not implemented → users can't directly edit NDA fields, only via chat
+5. No rate limiting on API endpoints → add in future releases
+6. Document snapshots (save/rename/tag) UI infrastructure exists but backend integration incomplete
 
 ### 📝 Future Features
 
-**PL-7+ (Backlog):**
+**PL-8+ (Backlog):**
+- Complete NDA snapshot save/rename/tag functionality with backend persistence
+- Document download as PDF (snapshot management)
 - Multi-document support (MSA, DPA, etc.)
 - Conversation sharing with other users
 - Conversation history export (PDF, JSON)
@@ -153,12 +177,27 @@ cd frontend && npm test -- __tests__/utils/api.test.ts
 ```bash
 sudo ./scripts/start-linux.sh
 # Access at http://localhost:8000
+
+# Unauthenticated Flow
 # - Chat interface loads and AI sends greeting automatically
 # - AI guides through all 18 NDA fields sequentially, always asking a follow-up
-# - Document Preview (right panel) updates live as fields are collected
+# - Document Preview (right panel) updates live as fields are collected with draft disclaimer visible
 # - Page reload resumes previous conversation from localStorage
+
+# Authentication Flow (PL-7)
+# - Sign In button opens AuthModal with Sign In and Create Account tabs
+# - Create Account tab shows email, password, name fields with strength requirements
+# - Password strength requirements display with real-time validation checkmarks
+# - Registration succeeds with valid credentials; user profile appears in navbar
+# - Login with registered credentials returns user to authenticated state
+
+# Authenticated User Flow
+# - User profile shows name and avatar initial in top-right corner
+# - "My Documents" navigation link available in navbar
+# - My Documents page at /my-documents displays empty state (no documents yet)
+# - Chat continues working for authenticated users
 # - PDF download button (header, emerald) generates and downloads NDA
-# - Sign In button supports Google OAuth (popup flow)
+# - Original Google OAuth flow still works for quick sign-in
 ```
 
 ### Syntax Validation
