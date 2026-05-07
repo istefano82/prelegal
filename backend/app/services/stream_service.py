@@ -47,13 +47,20 @@ class StreamService:
             ]
 
             # Call LLM with streaming
-            response = await acompletion(
-                model=settings.litellm_model,
-                messages=messages,
-                response_format={"type": "json_object"},
-                temperature=0.3,
-                stream=True,
-            )
+            # Note: Some models may not support response_format constraint
+            # For gpt-oss-120b, skip it to avoid provider errors
+            llm_kwargs = {
+                "model": settings.litellm_model,
+                "messages": messages,
+                "temperature": 0.3,
+                "stream": True,
+            }
+
+            # Add response_format only for models that reliably support it (Claude, GPT-4)
+            if "claude" in settings.litellm_model.lower() or "gpt-4" in settings.litellm_model.lower():
+                llm_kwargs["response_format"] = {"type": "json_object"}
+
+            response = await acompletion(**llm_kwargs)
 
             # Collect full response
             full_content = ""
