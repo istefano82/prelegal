@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     openrouter_api_key: str
     log_level: str = "INFO"
     cors_origins: str | list[str] = Field(default="http://localhost:3000")
+    cors_origin_regex: str = r"https://.*\.vercel\.app"
     max_conversation_turns: int = 20
     google_client_id: str = ""
     google_client_secret: str = ""

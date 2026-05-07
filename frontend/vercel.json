@@ -1,0 +1,20 @@
+{
+  "rewrites": [
+    {
+      "source": "/auth/:path*",
+      "destination": "https://backend-mu-nine-292one8ynd.vercel.app/auth/:path*"
+    },
+    {
+      "source": "/chat/:path*",
+      "destination": "https://backend-mu-nine-292one8ynd.vercel.app/chat/:path*"
+    },
+    {
+      "source": "/documents/:path*",
+      "destination": "https://backend-mu-nine-292one8ynd.vercel.app/documents/:path*"
+    },
+    {
+      "source": "/health",
+      "destination": "https://backend-mu-nine-292one8ynd.vercel.app/health"
+    }
+  ]
+}
